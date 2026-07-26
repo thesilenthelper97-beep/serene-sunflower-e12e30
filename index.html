@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>EverOwn — Onboarding Prototype</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Public+Sans:wght@400;500;600&display=swap');
+
+  :root{
+    --ink: #16241F;        /* deep ink-green */
+    --ink-soft: #23362F;   /* lighter ink-green surface */
+    --brass: #B78E4F;      /* warm brass */
+    --brass-soft: #D9BD8B; /* muted brass for secondary marks */
+    --paper: #F3EAD9;      /* warm paper */
+    --paper-dim: #E7DBC5;  /* paper shadowed */
+    --sage: #7C8A80;       /* muted secondary text on ink */
+    --stroke: rgba(247,240,224,0.14);
+  }
+  *{box-sizing:border-box;}
+  html, body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--ink);
+    font-family:'Public Sans', sans-serif;
+  }
+  .device{
+    width:100%;
+    min-height:100dvh;
+    background: var(--ink);
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+  .screen{
+    position:absolute;
+    inset:0;
+    min-height:100dvh;
+    padding: calc(env(safe-area-inset-top, 0px) + 56px) 28px calc(env(safe-area-inset-bottom, 0px) + 28px);
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    transform:translateX(24px);
+    pointer-events:none;
+    transition:opacity .45s ease, transform .45s ease;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .screen.active{
+    opacity:1;
+    transform:translateX(0);
+    pointer-events:auto;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass-soft);
+    margin:0 0 10px;
+    font-weight:600;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:30px;
+    line-height:1.15;
+    color:var(--paper);
+    margin:0 0 14px;
+  }
+  h1 em{ font-style:italic; color:var(--brass); font-weight:500; }
+  p.lede{
+    color:var(--sage);
+    font-size:14.5px;
+    line-height:1.55;
+    margin:0 0 22px;
+  }
+  .spacer{ flex:1; }
+  .btn{
+    appearance:none;
+    border:none;
+    border-radius:14px;
+    padding:15px 20px;
+    font-family:'Public Sans', sans-serif;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    width:100%;
+    transition: transform .15s ease, filter .15s ease;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn-primary{
+    background: linear-gradient(180deg, var(--brass), #9c7940);
+    color:#191008;
+  }
+  .btn-primary:hover{ filter:brightness(1.06); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--sage);
+    border:1px solid var(--stroke);
+    margin-top:10px;
+  }
+  .btn-ghost:hover{ color: var(--paper); border-color: rgba(247,240,224,0.3); }
+
+  .wordmark{
+    font-family:'Fraunces', serif;
+    font-size:15px;
+    letter-spacing:.05em;
+    color: var(--brass-soft);
+    margin-bottom:36px;
+  }
+
+  /* Screen 1 — Welcome */
+  .hero-line{ display:flex; flex-direction:column; gap:4px; margin-top:auto; margin-bottom:auto;}
+  .hero-line .big{
+    font-family:'Fraunces', serif;
+    font-size:38px;
+    line-height:1.08;
+    color:var(--paper);
+    font-weight:500;
+  }
+  .hero-line .accent{ color:var(--brass); font-style:italic; }
+  .not-list{ margin-top:26px; display:flex; flex-direction:column; gap:8px; }
+  .not-item{ font-size:13px; color:var(--sage); }
+  .not-item::before{ content:"— not "; color:rgba(124,138,128,0.6); }
+
+  /* Screen 2 — category explanation */
+  .pillars{ display:flex; flex-direction:column; gap:16px; margin-top:6px; }
+  .pillar{
+    display:flex; gap:14px; align-items:flex-start;
+    padding:14px 16px; border-radius:14px;
+    background: var(--ink-soft);
+    border:1px solid var(--stroke);
+  }
+  .pillar .mark{
+    width:34px;height:34px;border-radius:50%;
+    background:rgba(183,142,79,0.15);
+    border:1px solid rgba(183,142,79,0.4);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--brass); font-family:'Fraunces',serif; font-size:15px; flex-shrink:0;
+  }
+  .pillar .txt strong{ display:block; color:var(--paper); font-size:14.5px; margin-bottom:2px; font-weight:600; }
+  .pillar .txt span{ color:var(--sage); font-size:12.5px; line-height:1.4; }
+
+  /* Screen 3 — account */
+  .field{ margin-bottom:14px; }
+  .field label{ font-size:12px; color:var(--sage); display:block; margin-bottom:6px; }
+  .field input{
+    width:100%; background:var(--ink-soft); border:1px solid var(--stroke);
+    border-radius:12px; padding:13px 14px; color:var(--paper); font-size:14.5px;
+    font-family:'Public Sans', sans-serif;
+  }
+  .field input::placeholder{ color:rgba(124,138,128,0.6); }
+
+  /* Screen 4 — category picker */
+  .cat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
+  .cat-card{
+    border-radius:16px; padding:16px 14px; border:1px solid var(--stroke);
+    background:var(--ink-soft); cursor:pointer; transition:.15s ease;
+  }
+  .cat-card.featured{
+    grid-column:1 / -1;
+    background: linear-gradient(135deg, rgba(183,142,79,0.16), rgba(183,142,79,0.05));
+    border-color: rgba(183,142,79,0.45);
+  }
+  .cat-card .icon{ font-size:20px; margin-bottom:8px; display:block; }
+  .cat-card strong{ color:var(--paper); font-size:14px; display:block; }
+  .cat-card span{ color:var(--sage); font-size:11.5px; }
+  .cat-card:hover{ border-color: rgba(183,142,79,0.5); }
+  .tag{
+    display:inline-block; font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--brass); margin-top:6px; font-weight:700;
+  }
+
+  /* Screen 5 — asset creation */
+  .assist-row{
+    display:flex; align-items:center; gap:10px; padding:12px 14px;
+    background:rgba(183,142,79,0.1); border:1px solid rgba(183,142,79,0.3);
+    border-radius:12px; margin-bottom:18px; font-size:12.5px; color:var(--brass-soft);
+  }
+  .assist-row .dot{ width:7px;height:7px;border-radius:50%; background:var(--brass); flex-shrink:0; }
+
+  /* Screen 6 — health snapshot (signature moment) */
+  .snap-head{ display:flex; align-items:center; gap:14px; margin-bottom:22px; }
+  .ring-wrap{ position:relative; width:92px; height:92px; flex-shrink:0; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-bg{ fill:none; stroke:var(--ink-soft); stroke-width:8; }
+  .ring-fg{
+    fill:none; stroke:var(--brass); stroke-width:8; stroke-linecap:round;
+    stroke-dasharray: 251; stroke-dashoffset:251;
+    transition: stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1);
+  }
+  .ring-label{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+  }
+  .ring-label .state{ font-family:'Fraunces', serif; font-size:13px; color:var(--brass-soft); font-weight:500; text-align:center; line-height:1.2; padding:0 8px; }
+  .snap-title{ color:var(--sage); font-size:12px; margin-bottom:2px; }
+  .snap-name{ font-family:'Fraunces', serif; color:var(--paper); font-size:20px; }
+
+  .know-list{ display:flex; flex-direction:column; gap:9px; margin-bottom:18px; }
+  .know-item{ display:flex; gap:9px; align-items:center; font-size:13px; }
+  .know-item.yes{ color:var(--paper); }
+  .know-item.no{ color:var(--sage); }
+  .mk{ width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0; }
+  .mk.yes{ background:rgba(183,142,79,0.25); color:var(--brass); }
+  .mk.no{ background:transparent; border:1px solid var(--stroke); color:var(--sage); }
+  .next-card{
+    background:var(--ink-soft); border:1px solid var(--stroke); border-radius:14px;
+    padding:14px 16px; margin-top:auto;
+  }
+  .next-card .eyebrow{ margin-bottom:6px; }
+  .next-card p{ color:var(--paper); font-size:13.5px; margin:0; }
+
+  /* Screen 7 — vault */
+  .vault-q{ font-family:'Fraunces', serif; font-style:italic; color:var(--paper); font-size:19px; line-height:1.4; margin-bottom:22px;}
+  .vault-opts{ display:flex; flex-direction:column; gap:10px; }
+  .vault-opt{
+    display:flex; align-items:center; gap:12px; padding:14px 16px;
+    background:var(--ink-soft); border:1px solid var(--stroke); border-radius:14px;
+  }
+  .vault-opt .ic{ font-size:17px; }
+  .vault-opt strong{ color:var(--paper); font-size:13.5px; display:block; }
+  .vault-opt span{ color:var(--sage); font-size:11.5px; }
+
+  /* Screen 8 — assistant */
+  .bubble{
+    background:var(--ink-soft); border:1px solid var(--stroke); border-radius:16px 16px 16px 4px;
+    padding:14px 16px; font-size:13.5px; color:var(--paper); line-height:1.5; max-width:88%;
+  }
+  .bubble.me{
+    align-self:flex-end; border-radius:16px 16px 4px 16px;
+    background:rgba(183,142,79,0.18); border-color:rgba(183,142,79,0.35);
+  }
+  .chat{ display:flex; flex-direction:column; gap:12px; margin-top:8px; }
+
+  .prompt-chip{
+    display:inline-flex; align-items:center; gap:8px; align-self:flex-start;
+    background:rgba(183,142,79,0.14); border:1px solid rgba(183,142,79,0.4);
+    color:var(--brass-soft); font-size:13px; font-weight:600;
+    padding:10px 14px; border-radius:20px; margin-bottom:18px;
+  }
+  .insight-card{
+    background:var(--ink-soft); border:1px solid var(--stroke); border-radius:14px;
+    padding:14px 16px; margin-bottom:12px;
+  }
+  .proto-controls{
+    border-top:1px solid var(--stroke); padding-top:14px; margin-top:8px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .proto-controls span{ font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(124,138,128,0.6); }
+
+  /* Screen 9 — the real Ownership Home, arrived at from onboarding */
+  .home-screen{ padding-top: calc(env(safe-area-inset-top,0px) + 24px) !important; }
+  .home-topbar{
+    position:sticky; top:0; z-index:5; margin:-24px -28px 20px; padding:14px 28px;
+    background: rgba(22,36,31,0.88); backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--stroke); font-family:'Fraunces', serif; font-size:14px; color:var(--sage);
+  }
+  .arrival-line{ font-family:'Fraunces', serif; font-style:italic; color:var(--brass-soft); font-size:15px; margin:0 0 18px; }
+  .home-cat{ font-size:11px; color:var(--sage); text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
+  h1.home-name{ font-family:'Fraunces', serif; font-weight:500; font-size:28px; line-height:1.15; margin:0 0 6px; }
+  .home-official{ font-size:13.5px; color:var(--sage); margin:0 0 12px; }
+  .home-meta{ display:flex; flex-wrap:wrap; gap:6px 12px; color:var(--sage); font-size:12.5px; margin-bottom:8px; }
+  .home-meta span::after{ content:"·"; margin-left:12px; color:rgba(124,138,128,0.4); }
+  .home-meta span:last-child::after{ content:""; margin:0; }
+  .home-section{ margin-bottom:32px; }
+  .home-health-card{ background:var(--ink-soft); border:1px solid var(--stroke); border-radius:18px; padding:18px; margin-top:14px; }
+  .home-health-top{ display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+  .home-ring-wrap{ position:relative; width:68px; height:68px; flex-shrink:0; }
+  .home-ring-wrap svg{ transform:rotate(-90deg); }
+  .home-ring-bg{ fill:none; stroke:var(--ink-soft); stroke-width:6; }
+  .home-ring-fg{ fill:none; stroke:var(--brass); stroke-width:6; stroke-linecap:round; stroke-dasharray:188; stroke-dashoffset:188; transition:stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1); }
+  .home-ring-label{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .home-ring-label span{ font-family:'Fraunces', serif; font-size:11px; font-weight:500; color:var(--brass-soft); text-align:center; line-height:1.2; padding:0 4px; }
+  .home-know-list{ display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+  .home-know-item{ display:flex; gap:8px; align-items:center; font-size:12.5px; }
+  .home-know-item.yes{ color:var(--paper); }
+  .home-know-item.no{ color:var(--sage); }
+  .home-mk{ width:15px; height:15px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; flex-shrink:0; }
+  .home-mk.yes{ background:rgba(183,142,79,0.25); color:var(--brass); }
+  .home-mk.no{ background:transparent; border:1px solid var(--stroke); color:var(--sage); }
+  .home-next-action{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--ink-soft); border:1px solid var(--stroke); border-radius:12px; padding:11px 13px; }
+  .home-next-action p{ margin:0; font-size:12px; color:var(--paper); }
+  .home-next-action button{ appearance:none; border:none; border-radius:10px; padding:8px 13px; background:linear-gradient(180deg,var(--brass),#9c7940); color:#191008; font-size:11.5px; font-weight:700; flex-shrink:0; }
+  .home-timeline{ position:relative; padding-left:20px; margin-top:14px; }
+  .home-timeline::before{ content:""; position:absolute; left:5px; top:6px; bottom:6px; width:1px; background:var(--stroke); }
+  .home-t-item{ position:relative; padding-bottom:18px; }
+  .home-t-item:last-child{ padding-bottom:0; }
+  .home-t-item::before{ content:""; position:absolute; left:-20px; top:2px; width:10px; height:10px; border-radius:50%; background:var(--ink); border:2px solid var(--brass); }
+  .home-t-date{ font-size:10.5px; color:var(--brass-soft); text-transform:uppercase; letter-spacing:.06em; margin-bottom:2px; }
+  .home-t-title{ font-size:13.5px; color:var(--paper); font-weight:600; margin-bottom:2px; }
+  .home-t-desc{ font-size:12px; color:var(--sage); line-height:1.5; }
+  .home-protect-grid, .home-rel-grid{ display:flex; flex-direction:column; gap:9px; margin-top:14px; }
+  .home-protect-card{ display:flex; align-items:center; gap:11px; background:var(--ink-soft); border:1px solid var(--stroke); border-radius:14px; padding:13px 15px; }
+  .home-protect-card .ic{ font-size:16px; width:26px; text-align:center; flex-shrink:0; }
+  .home-protect-card .body{ flex:1; }
+  .home-protect-card strong{ display:block; font-size:13px; color:var(--paper); }
+  .home-protect-card span{ font-size:11px; color:var(--sage); }
+  .home-status-pill{ font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:4px 8px; border-radius:20px; flex-shrink:0; }
+  .home-status-pill.off{ background:transparent; border:1px solid var(--stroke); color:var(--sage); }
+  .home-rel-card{ display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; background:var(--ink-soft); border:1px solid var(--stroke); border-radius:14px; padding:12px 15px; font-size:13px; }
+  .home-rel-card .verb{ color:var(--sage); }
+  .home-rel-card .who{ color:var(--paper); font-weight:600; }
+  .home-rel-card .note{ width:100%; font-size:11px; color:var(--sage); margin-top:2px; }
+
+  .progress{
+    position:absolute; top: calc(env(safe-area-inset-top, 0px) + 18px); left:28px; right:28px; display:flex; gap:5px; z-index:10;
+    transition:opacity .5s ease;
+  }
+  .progress .seg{ flex:1; height:3px; border-radius:3px; background:rgba(247,240,224,0.12); overflow:hidden;}
+  .progress .seg i{ display:block; height:100%; width:0%; background:var(--brass); transition:width .3s ease; }
+
+  .footer-note{
+    text-align:center; color:rgba(124,138,128,0.55); font-size:11px; margin-top:10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="device" id="device">
+  <div class="progress" id="progress"></div>
+
+  <!-- Screen 1: Welcome -->
+  <div class="screen active" data-idx="0">
+    <div class="wordmark">EVEROWN</div>
+    <div class="hero-line">
+      <div class="big">A living<br>record of<br><span class="accent">everything</span><br>you own.</div>
+      <div class="not-list">
+        <div class="not-item">a reminder app</div>
+        <div class="not-item">a file cabinet</div>
+        <div class="not-item">a maintenance tracker</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" onclick="go(1)">Continue</button>
+  </div>
+
+  <!-- Screen 2: Category explanation -->
+  <div class="screen" data-idx="1">
+    <p class="eyebrow">How it works</p>
+    <h1>Everything you own has <em>a story.</em></h1>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="mark">I</div>
+        <div class="txt"><strong>Identity &amp; Ownership</strong><span>What it is, and who owns it — clearly, over time.</span></div>
+      </div>
+      <div class="pillar">
+        <div class="mark">H</div>
+        <div class="txt"><strong>Ownership Health</strong><span>How well EverOwn understands and can support it.</span></div>
+      </div>
+      <div class="pillar">
+        <div class="mark">V</div>
+        <div class="txt"><strong>Memory &amp; the Vault</strong><span>Photos, records, and history that travel with it.</span></div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" onclick="go(2)">Continue</button>
+  </div>
+
+  <!-- Screen 3: Account creation -->
+  <div class="screen" data-idx="2">
+    <p class="eyebrow">Create your account</p>
+    <h1>Your record<br>should follow you.</h1>
+    <p class="lede">Not just this phone — so the story you're about to build stays yours, wherever you go.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="text" placeholder="you@example.com" readonly inputmode="none" tabindex="-1">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="text" placeholder="••••••••" readonly inputmode="none" tabindex="-1">
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" onclick="go(3)">Create account</button>
+  </div>
+
+  <!-- Screen 4: First asset category -->
+  <div class="screen" data-idx="3">
+    <p class="eyebrow">Your first asset</p>
+    <h1>What should we<br>start with?</h1>
+    <div class="cat-grid">
+      <div class="cat-card featured" onclick="pickCategory('vehicle')">
+        <span class="icon">🚗</span>
+        <strong>Vehicle</strong>
+        <span>Clear identity, history, and lifecycle</span>
+        <div class="tag">Most people start here</div>
+      </div>
+      <div class="cat-card" onclick="pickCategory('home')"><span class="icon">🏠</span><strong>Home</strong><span>Systems &amp; property</span></div>
+      <div class="cat-card" onclick="pickCategory('item')"><span class="icon">⌚</span><strong>Valuable item</strong><span>Jewelry, electronics</span></div>
+      <div class="cat-card" onclick="pickCategory('equipment')"><span class="icon">🧰</span><strong>Appliance</strong><span>Major home equipment</span></div>
+      <div class="cat-card" onclick="pickCategory('item')"><span class="icon">•••</span><strong>Other</strong><span>Anything else you own</span></div>
+    </div>
+  </div>
+
+  <!-- Screen 5: Asset creation flow -->
+  <div class="screen" data-idx="4">
+    <p class="eyebrow" id="assetEyebrow">Add your vehicle</p>
+    <h1>Tell us what<br>you know.</h1>
+    <div class="assist-row"><span class="dot"></span> Or just describe it — Ever Assistant can fill this in.</div>
+    <div class="field"><label id="nameLabel">Name</label><input type="text" id="nameInput" placeholder="My Civic" oninput="state.name=this.value"></div>
+    <div class="field"><label id="detailsLabel">Make / model / year</label><input type="text" id="detailsInput" placeholder="Honda Civic, 2019" oninput="state.details=this.value"></div>
+    <div class="field"><label>Acquired</label><input type="text" id="acquiredInput" placeholder="Around 2021, bought used" oninput="state.acquired=this.value"></div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" onclick="revealHealth()">See Ownership Health</button>
+    <div class="proto-controls">
+      <span>Prototype test mode — quick-fill a scenario</span>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-ghost" style="flex:1; margin-top:0;" onclick="quickFill('vehicle')">Vehicle owner</button>
+        <button class="btn btn-ghost" style="flex:1; margin-top:0;" onclick="quickFill('home')">Homeowner</button>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-ghost" style="flex:1; margin-top:0;" onclick="quickFill('equipment')">Business owner</button>
+        <button class="btn btn-ghost" style="flex:1; margin-top:0;" onclick="quickFill('item')">Collector</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 6: Health snapshot (signature) -->
+  <div class="screen" data-idx="5">
+    <p class="eyebrow" style="margin-bottom:14px;">EverOwn is beginning to understand what you own.</p>
+    <div class="snap-head">
+      <div class="ring-wrap">
+        <svg width="92" height="92" viewBox="0 0 92 92">
+          <circle class="ring-bg" cx="46" cy="46" r="40"></circle>
+          <circle class="ring-fg" id="healthRing" cx="46" cy="46" r="40"></circle>
+        </svg>
+        <div class="ring-label"><span class="state">Understood</span></div>
+      </div>
+      <div>
+        <div class="snap-title" id="snapTitle">Your vehicle</div>
+        <div class="snap-name" id="snapName">Honda Civic</div>
+      </div>
+    </div>
+
+    <p style="color:var(--paper); font-size:13px; font-weight:600; margin:0 0 10px;">Here is what EverOwn knows so far.</p>
+    <div class="know-list">
+      <div class="know-item yes"><span class="mk yes">✓</span> <span id="identityKnowLabel">Vehicle identity</span></div>
+      <div class="know-item yes"><span class="mk yes">✓</span> Ownership history</div>
+      <div id="missingKnowList"></div>
+    </div>
+
+    <div class="next-card">
+      <p class="eyebrow" style="margin-bottom:6px;">Coming next</p>
+      <p>Add your first document to raise your confidence.</p>
+    </div>
+    <button class="btn btn-primary" style="margin-top:14px;" onclick="go(6)">Add a memory</button>
+  </div>
+
+  <!-- Screen 7: Vault intro -->
+  <div class="screen" data-idx="6">
+    <p class="eyebrow">The Vault</p>
+    <div class="vault-q">"What would make this easier to understand, protect, or transfer?"</div>
+    <div class="vault-opts">
+      <div class="vault-opt"><span class="ic">📷</span><div><strong>Take a photo</strong><span>Capture how it looks today</span></div></div>
+      <div class="vault-opt"><span class="ic">📄</span><div><strong>Add a document</strong><span>Receipt, title, or warranty</span></div></div>
+      <div class="vault-opt"><span class="ic">✏️</span><div><strong>Write a note</strong><span>Anything worth remembering</span></div></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" onclick="go(7)">Continue</button>
+  </div>
+
+  <!-- Screen 8: Assistant entry -->
+  <div class="screen" data-idx="7">
+    <p class="eyebrow">Ever Assistant</p>
+    <h1>A guide, not<br>a chat window.</h1>
+    <p class="lede">It reasons from your ownership record — nothing invented, nothing decided for you.</p>
+    <div class="prompt-chip">✦ Explain my Ownership Health</div>
+    <div class="insight-card">
+      <p style="color:var(--paper); font-size:13.5px; line-height:1.55; margin:0;" id="screen8AssistantText">Your Civic's identity and ownership history are <strong style="color:var(--brass-soft);">well understood</strong>. Insurance info and a service record are still missing — I can prepare a short checklist whenever you're ready.</p>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" onclick="go(8)">Finish — go to your asset</button>
+    <div class="proto-controls">
+      <span>Prototype controls — not product UI</span>
+      <button class="btn btn-ghost" onclick="go(0)">Restart walkthrough</button>
+    </div>
+  </div>
+
+  <!-- Screen 9: Real Ownership Home — the seam -->
+  <div class="screen home-screen" data-idx="8">
+    <div class="home-topbar" id="homeTopbarName">The Civic</div>
+    <p class="arrival-line" id="arrivalLine">This is where the Civic's story begins.</p>
+
+    <div class="home-section">
+      <div class="home-cat" id="homeCat">Vehicle</div>
+      <h1 class="home-name" id="homeName">The Civic</h1>
+      <p class="home-official" id="homeOfficial">2019 Honda Civic LX</p>
+      <div class="home-meta">
+        <span>Added today</span>
+        <span>Primary owner: You</span>
+      </div>
+    </div>
+
+    <div class="home-section">
+      <p class="eyebrow">Ownership Health</p>
+      <div class="home-health-card">
+        <div class="home-health-top">
+          <div class="home-ring-wrap">
+            <svg width="68" height="68" viewBox="0 0 68 68">
+              <circle class="home-ring-bg" cx="34" cy="34" r="30"></circle>
+              <circle class="home-ring-fg" id="homeHealthRing" cx="34" cy="34" r="30"></circle>
+            </svg>
+            <div class="home-ring-label"><span>Understood</span></div>
+          </div>
+          <div class="health-summary"><p>Its identity is on record, and you've added your first memory.</p></div>
+        </div>
+        <div class="home-know-list">
+          <div class="home-know-item yes"><span class="home-mk yes">✓</span> <span id="homeIdentityKnow">Vehicle identity</span></div>
+          <div class="home-know-item yes"><span class="home-mk yes">✓</span> First memory added</div>
+          <div id="homeMissingKnowList"></div>
+        </div>
+        <div class="home-next-action">
+          <p id="homeNextActionText">Add insurance info to strengthen the Civic's story.</p>
+          <button>Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-section">
+      <p class="eyebrow">The Story</p>
+      <div class="home-timeline">
+        <div class="home-t-item">
+          <div class="home-t-date">Today</div>
+          <div class="home-t-title">Added to EverOwn</div>
+          <div class="home-t-desc" id="homeStoryDesc">Where the Civic's story with you begins.</div>
+        </div>
+        <div class="home-t-item">
+          <div class="home-t-date">Today</div>
+          <div class="home-t-title">First memory kept</div>
+          <div class="home-t-desc">A photo, added moments ago.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-section">
+      <p class="eyebrow">What Protects It</p>
+      <div class="home-protect-grid" id="homeProtectGrid"></div>
+    </div>
+
+    <div class="home-section">
+      <p class="eyebrow">Connected To</p>
+      <div class="home-rel-grid">
+        <div class="home-rel-card"><span class="verb">Belongs to</span><span class="who">You</span><span class="note">Added today</span></div>
+      </div>
+    </div>
+
+    <div class="home-section" style="margin-bottom:8px;">
+      <p class="eyebrow">Ever Assistant</p>
+      <div class="insight-card">
+        <p style="color:var(--paper); font-size:13px; line-height:1.55; margin:0;" id="homeAssistantText">The Civic's identity is on record, and your first memory is kept. Insurance and a service record can be added anytime — I'm here when you're ready.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const state = { category: 'vehicle', name: '', details: '', acquired: '' };
+
+  const categoryConfig = {
+    vehicle: { label:'vehicle', catLabel:'Vehicle', eyebrow:'Add your vehicle', nameLabel:'Name', namePh:'My Civic', detailsLabel:'Make / model / year', detailsPh:'Honda Civic, 2019', acquiredPh:'Around 2021, bought used', defaultName:'Your vehicle', defaultOfficial:'2019 Honda Civic LX',
+      missing:['Insurance information','Service records'],
+      protection:[{ic:'📄',label:'Title'},{ic:'🛡️',label:'Warranty'},{ic:'🧾',label:'Insurance'}],
+      nextAction:'Add insurance info to strengthen NAME\'s story.' },
+    home: { label:'home', catLabel:'Home', eyebrow:'Add your home', nameLabel:'Name', namePh:'My Home', detailsLabel:'Type / address', detailsPh:'Single-family home', acquiredPh:'Bought in 2019', defaultName:'Your home', defaultOfficial:'Single-family home',
+      missing:['Homeowners insurance','Inspection record'],
+      protection:[{ic:'📜',label:'Deed'},{ic:'🏡',label:'Homeowners insurance'},{ic:'🔧',label:'Home warranty'}],
+      nextAction:'Add your homeowners insurance to strengthen NAME\'s story.' },
+    equipment: { label:'equipment', catLabel:'Equipment', eyebrow:'Add your equipment', nameLabel:'Name', namePh:'The Pressure Washer', detailsLabel:'Type / model', detailsPh:'Simpson MSH3125', acquiredPh:'Purchased 2022 for business use', defaultName:'Your equipment', defaultOfficial:'Simpson MSH3125',
+      missing:['Business insurance','Depreciation record'],
+      protection:[{ic:'🛡️',label:'Warranty'},{ic:'🧾',label:'Business insurance'},{ic:'📉',label:'Depreciation record'}],
+      nextAction:'Add a depreciation record to strengthen NAME\'s story.' },
+    item: { label:'item', catLabel:'Item', eyebrow:'Add your item', nameLabel:'Name', namePh:'My Watch', detailsLabel:'Type / description', detailsPh:'Omega Seamaster', acquiredPh:'Inherited in 2019', defaultName:'Your item', defaultOfficial:'Omega Seamaster',
+      missing:['Appraisal','Authentication'],
+      protection:[{ic:'💎',label:'Appraisal'},{ic:'🔎',label:'Authentication'},{ic:'🧾',label:'Insurance'}],
+      nextAction:'Add an appraisal to strengthen NAME\'s story.' }
+  };
+
+  function renderMissingKnows(containerId, cfg, prefix){
+    const el = document.getElementById(containerId);
+    el.innerHTML = cfg.missing.map(m => `<div class="${prefix}know-item no"><span class="${prefix}mk no">○</span> ${m}</div>`).join('');
+  }
+
+  function renderProtection(cfg){
+    const el = document.getElementById('homeProtectGrid');
+    el.innerHTML = cfg.protection.map(p => `<div class="home-protect-card"><span class="ic">${p.ic}</span><div class="body"><strong>${p.label}</strong><span>Not yet added</span></div><span class="home-status-pill off">Missing</span></div>`).join('');
+  }
+
+  function pickCategory(cat){
+    state.category = cat;
+    const cfg = categoryConfig[cat];
+    document.getElementById('assetEyebrow').textContent = cfg.eyebrow;
+    document.getElementById('nameLabel').textContent = cfg.nameLabel;
+    document.getElementById('detailsLabel').textContent = cfg.detailsLabel;
+    document.getElementById('nameInput').placeholder = cfg.namePh;
+    document.getElementById('detailsInput').placeholder = cfg.detailsPh;
+    document.getElementById('acquiredInput').placeholder = cfg.acquiredPh;
+    go(4);
+  }
+
+  function quickFill(cat){
+    const presets = {
+      vehicle: { name:'The Tacoma', details:'2019 Toyota Tacoma', acquired:'Purchased 2022, used' },
+      home: { name:'Our Home', details:'Single-family, built 1998', acquired:'Bought in 2020' },
+      equipment: { name:'The Pressure Washer', details:'Simpson MSH3125', acquired:'Purchased 2022 for business use' },
+      item: { name:"Grandfather's Watch", details:'Omega Seamaster, c. 1968', acquired:'Inherited in 2019' }
+    };
+    pickCategory(cat);
+    const p = presets[cat];
+    state.name = p.name; state.details = p.details; state.acquired = p.acquired;
+    document.getElementById('nameInput').value = p.name;
+    document.getElementById('detailsInput').value = p.details;
+    document.getElementById('acquiredInput').value = p.acquired;
+  }
+
+  function formatMissingPhrase(missing){
+    if(!missing || missing.length === 0) return 'nothing critical';
+    if(missing.length === 1) return missing[0].toLowerCase();
+    if(missing.length === 2) return missing[0].toLowerCase() + ' and ' + missing[1].toLowerCase();
+    return missing.slice(0, -1).map(m => m.toLowerCase()).join(', ') + ', and ' + missing[missing.length-1].toLowerCase();
+  }
+
+  function revealHealth(){
+    const cfg = categoryConfig[state.category];
+    const displayName = state.name.trim() || cfg.defaultName;
+    document.getElementById('snapTitle').textContent = 'Your ' + cfg.label;
+    document.getElementById('snapName').textContent = displayName;
+    document.getElementById('identityKnowLabel').textContent = cfg.catLabel + ' identity';
+    renderMissingKnows('missingKnowList', cfg, '');
+
+    // Screen 8 Assistant — observational only (Article VI)
+    const missingPhrase = formatMissingPhrase(cfg.missing);
+    document.getElementById('screen8AssistantText').innerHTML =
+      displayName + "'s identity and ownership history are <strong style=\"color:var(--brass-soft);\">well understood</strong>. " +
+      missingPhrase.charAt(0).toUpperCase() + missingPhrase.slice(1) +
+      " are still missing — I can prepare a short checklist whenever you're ready.";
+
+    go(5);
+    animateRing();
+  }
+
+  function renderHome(){
+    const cfg = categoryConfig[state.category];
+    const displayName = state.name.trim() || cfg.defaultName;
+    document.getElementById('homeTopbarName').textContent = displayName;
+    document.getElementById('homeName').textContent = displayName;
+    document.getElementById('homeCat').textContent = cfg.catLabel;
+    document.getElementById('homeOfficial').textContent = state.details.trim() || cfg.defaultOfficial;
+    document.getElementById('arrivalLine').textContent = "This is where your " + cfg.label + "'s story begins.";
+    document.getElementById('homeIdentityKnow').textContent = cfg.catLabel + ' identity';
+    document.getElementById('homeStoryDesc').textContent = "Where " + displayName + "'s story with you begins.";
+
+    // Next action from config (Article V — protection is category-specific)
+    const nextText = (cfg.nextAction || '').replace(/NAME/g, displayName);
+    document.getElementById('homeNextActionText').textContent = nextText;
+
+    // Missing knows + protection grid from config
+    renderMissingKnows('homeMissingKnowList', cfg, 'home-');
+    renderProtection(cfg);
+
+    // Assistant text — surfaces known vs missing, never invents (Article IV + VI)
+    const missingPhrase = formatMissingPhrase(cfg.missing);
+    document.getElementById('homeAssistantText').textContent =
+      displayName + "'s identity is on record, and your first memory is kept. " +
+      missingPhrase.charAt(0).toUpperCase() + missingPhrase.slice(1) +
+      " can be added anytime — I'm here when you're ready.";
+  }
+
+  const total = 9;
+  const screens = document.querySelectorAll('.screen');
+  const progress = document.getElementById('progress');
+  for(let i=0;i<8;i++){
+    const seg = document.createElement('div');
+    seg.className='seg';
+    seg.innerHTML = '<i></i>';
+    progress.appendChild(seg);
+  }
+  function go(idx){
+    screens.forEach(s => s.classList.toggle('active', +s.dataset.idx === idx));
+    const segs = progress.querySelectorAll('.seg i');
+    segs.forEach((s,i)=>{ s.style.width = i<=idx ? '100%' : '0%'; });
+    progress.style.opacity = idx === 8 ? '0' : '1';
+    progress.style.pointerEvents = idx === 8 ? 'none' : 'auto';
+    if(idx === 8){ renderHome(); animateHomeRing(); }
+  }
+  function animateRing(){
+    setTimeout(()=>{
+      const ring = document.getElementById('healthRing');
+      const pct = 0.73; // Understood state
+      const circumference = 251;
+      ring.style.strokeDashoffset = circumference - (circumference*pct);
+    }, 250);
+  }
+  function animateHomeRing(){
+    setTimeout(()=>{
+      const ring = document.getElementById('homeHealthRing');
+      const pct = 0.68;
+      const circumference = 188;
+      ring.style.strokeDashoffset = circumference - (circumference*pct);
+    }, 250);
+  }
+  go(0);
+</script>
+
+</body>
+</html>
