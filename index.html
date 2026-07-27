@@ -30,9 +30,7 @@
       --serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html {
       background: var(--paper);
@@ -50,25 +48,11 @@
       font-family: var(--serif);
     }
 
-    button,
-    input,
-    textarea {
-      font: inherit;
-    }
-
-    button,
-    a {
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+    button, input, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.62; }
+    a { color: inherit; text-decoration: none; }
 
     :focus-visible {
       outline: 3px solid rgba(164, 122, 50, 0.65);
@@ -143,8 +127,7 @@
       white-space: nowrap;
     }
 
-    .nav a:hover,
-    .nav a.active {
+    .nav a:hover, .nav a.active {
       color: var(--ink);
       background: var(--sage-pale);
     }
@@ -167,12 +150,7 @@
       text-transform: uppercase;
     }
 
-    h1,
-    h2,
-    h3,
-    p {
-      margin-top: 0;
-    }
+    h1, h2, h3, p { margin-top: 0; }
 
     h1 {
       max-width: 10ch;
@@ -211,9 +189,7 @@
       transition: transform 160ms ease, background 160ms ease;
     }
 
-    .button:hover {
-      transform: translateY(-1px);
-    }
+    .button:hover { transform: translateY(-1px); }
 
     .button-primary {
       color: #fffdf7;
@@ -418,15 +394,21 @@
     }
 
     .asset-form,
-    .asset-list-panel {
+    .asset-list-panel,
+    .auth-panel {
       padding: 22px;
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: var(--radius);
     }
 
+    .auth-panel {
+      margin-top: 26px;
+    }
+
     .asset-form h3,
-    .asset-list-panel h3 {
+    .asset-list-panel h3,
+    .auth-panel h2 {
       margin-bottom: 7px;
       font-size: 1.32rem;
       font-weight: 550;
@@ -439,6 +421,12 @@
       font-family: var(--sans);
       font-size: 0.88rem;
       line-height: 1.55;
+    }
+
+    .auth-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 17px;
     }
 
     .field {
@@ -497,6 +485,25 @@
 
     .form-message.error {
       color: var(--danger);
+    }
+
+    .auth-signed-in {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 15px;
+      background: var(--sage-pale);
+      border: 1px solid rgba(120, 145, 122, 0.36);
+      border-radius: var(--radius-small);
+      font-family: var(--sans);
+    }
+
+    .auth-signed-in p {
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.45;
     }
 
     .empty-state {
@@ -614,19 +621,16 @@
       line-height: 1.5;
     }
 
+    [hidden] { display: none !important; }
+
     @media (max-width: 780px) {
       .shell {
         width: min(100% - 22px, 1160px);
         padding-top: 10px;
       }
 
-      .topbar {
-        padding-bottom: 12px;
-      }
-
-      .nav-toggle {
-        display: block;
-      }
+      .topbar { padding-bottom: 12px; }
+      .nav-toggle { display: block; }
 
       .nav {
         position: absolute;
@@ -644,13 +648,8 @@
         box-shadow: var(--shadow);
       }
 
-      .nav.open {
-        display: flex;
-      }
-
-      .nav a {
-        padding: 12px;
-      }
+      .nav.open { display: flex; }
+      .nav a { padding: 12px; }
 
       .hero {
         grid-template-columns: 1fr;
@@ -658,17 +657,9 @@
         padding-top: 38px;
       }
 
-      h1 {
-        max-width: 12ch;
-      }
-
-      .assistant-card {
-        min-height: 276px;
-      }
-
-      .section-head {
-        display: block;
-      }
+      h1 { max-width: 12ch; }
+      .assistant-card { min-height: 276px; }
+      .section-head { display: block; }
 
       .section-head p {
         margin-top: 8px;
@@ -676,7 +667,8 @@
       }
 
       .workspace-grid,
-      .asset-layout {
+      .asset-layout,
+      .auth-grid {
         grid-template-columns: 1fr;
       }
 
@@ -685,9 +677,7 @@
         gap: 15px;
       }
 
-      .unavailable-label {
-        width: fit-content;
-      }
+      .unavailable-label { width: fit-content; }
     }
   </style>
 </head>
@@ -700,13 +690,7 @@
         <span>EverOwn</span>
       </a>
 
-      <button
-        class="nav-toggle"
-        id="nav-toggle"
-        type="button"
-        aria-controls="main-navigation"
-        aria-expanded="false"
-      >
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-controls="main-navigation" aria-expanded="false">
         Menu
       </button>
 
@@ -725,9 +709,8 @@
           <p class="eyebrow">A quieter way to organize</p>
           <h1 id="page-title">Keep ownership clear.</h1>
           <p class="hero-copy">
-            EverOwn is a preview workspace for organizing ownership information
-            with care, context, and a clear boundary between what is displayed
-            in this browser and what has been verified and stored.
+            EverOwn is a calm workspace for organizing ownership information
+            with care, context, and a clear account-based record of what you save.
           </p>
 
           <div class="hero-actions">
@@ -760,26 +743,73 @@
       <aside class="trust-banner" aria-labelledby="trust-heading">
         <div class="trust-icon" aria-hidden="true">i</div>
         <div>
-          <h2 id="trust-heading">Preview boundary</h2>
+          <h2 id="trust-heading">Account-based records</h2>
           <p>
-            Entries created on this page are saved only in this browser session
-            while the page remains open. They are not server-persisted records,
-            verified ownership records, or proof of ownership.
+            Assets are saved only after you sign in and EverOwn confirms the save.
+            Saved assets belong to your EverOwn account and are not proof of ownership.
           </p>
         </div>
       </aside>
 
-      <section aria-labelledby="workspace-heading">
+      <section class="auth-panel" id="account" aria-labelledby="account-heading">
+        <h2 id="account-heading">Your account</h2>
+        <p class="panel-intro">Sign in to save and view your EverOwn assets across page refreshes.</p>
+
+        <div id="signed-out-view">
+          <div class="auth-grid">
+            <form id="sign-in-form" novalidate>
+              <h3>Sign in</h3>
+
+              <div class="field">
+                <label for="sign-in-email">Email</label>
+                <input id="sign-in-email" type="email" autocomplete="email" required>
+              </div>
+
+              <div class="field">
+                <label for="sign-in-password">Password</label>
+                <input id="sign-in-password" type="password" autocomplete="current-password" required>
+              </div>
+
+              <button class="button button-primary" id="sign-in-button" type="submit">Sign in</button>
+              <p class="form-message" id="sign-in-message" role="status" aria-live="polite"></p>
+            </form>
+
+            <form id="sign-up-form" novalidate>
+              <h3>Create an account</h3>
+
+              <div class="field">
+                <label for="sign-up-email">Email</label>
+                <input id="sign-up-email" type="email" autocomplete="email" required>
+              </div>
+
+              <div class="field">
+                <label for="sign-up-password">Password</label>
+                <input id="sign-up-password" type="password" minlength="6" autocomplete="new-password" required>
+              </div>
+
+              <button class="button button-secondary" id="sign-up-button" type="submit">Create account</button>
+              <p class="form-message" id="sign-up-message" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+        </div>
+
+        <div class="auth-signed-in" id="signed-in-view" hidden>
+          <p>Signed in as <strong id="account-email"></strong>. Your saved assets are private to this account.</p>
+          <button class="button button-secondary" id="sign-out-button" type="button">Sign out</button>
+        </div>
+      </section>
+
+      <section aria-labelledby="workspace-heading" style="margin-top: 40px;">
         <div class="section-head">
           <h2 id="workspace-heading">Your workspace</h2>
-          <p>Choose a space to review the preview experience and its current availability.</p>
+          <p>Choose a space to review the current EverOwn experience and its availability.</p>
         </div>
 
         <div class="workspace-grid">
           <a class="workspace-card" href="#assets">
             <span class="card-number" aria-hidden="true">01</span>
             <h3>Assets</h3>
-            <p>Draft an item for this browser session and review its clearly marked preview status.</p>
+            <p>Save a home or vehicle to your signed-in EverOwn account.</p>
             <span class="card-link">Open assets →</span>
           </a>
 
@@ -802,28 +832,36 @@
       <section class="asset-section" id="assets" aria-labelledby="assets-heading">
         <div class="section-head">
           <h2 id="assets-heading">Assets</h2>
-          <p>Create a browser-session draft. This action does not save information to an EverOwn server.</p>
+          <p>Sign in, then save a home or vehicle to your private EverOwn account.</p>
         </div>
 
         <div class="asset-layout">
           <form class="asset-form" id="asset-form" novalidate>
-            <h3>Create a preview draft</h3>
+            <h3>Add an asset</h3>
             <p class="panel-intro">
-              Use general, non-sensitive example information. This preview has
-              no verified storage connection.
+              Your asset is saved only after EverOwn confirms it. Use general,
+              non-sensitive information in this version of the workspace.
             </p>
 
             <div class="field">
               <label for="asset-name">Asset name</label>
-              <input id="asset-name" name="asset-name" type="text" maxlength="80" placeholder="Example: Family vehicle" autocomplete="off">
+              <input id="asset-name" name="asset-name" type="text" maxlength="80" placeholder="Example: Family vehicle" autocomplete="off" required>
+            </div>
+
+            <div class="field">
+              <label for="asset-category">Asset type</label>
+              <select id="asset-category" name="asset-category" required style="width:100%;padding:11px 12px;color:var(--ink);background:#fffefa;border:1px solid var(--line);border-radius:10px;font-family:var(--sans);font-size:.94rem;">
+                <option value="vehicle">Vehicle</option>
+                <option value="home">Home</option>
+              </select>
             </div>
 
             <div class="field">
               <label for="asset-note">Optional note</label>
-              <textarea id="asset-note" name="asset-note" maxlength="240" placeholder="A short, non-sensitive note for this browser-session draft."></textarea>
+              <textarea id="asset-note" name="asset-note" maxlength="240" placeholder="A short, non-sensitive note about this asset."></textarea>
             </div>
 
-            <button class="button button-primary" type="submit">Add preview draft</button>
+            <button class="button button-primary" id="asset-submit-button" type="submit">Save asset</button>
 
             <p class="form-note">
               Do not enter account numbers, identity documents, passwords, legal documents, or other sensitive personal information.
@@ -832,17 +870,14 @@
             <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
           </form>
 
-          <section class="asset-list-panel" aria-labelledby="draft-list-heading">
-            <h3 id="draft-list-heading">Browser-session drafts</h3>
+          <section class="asset-list-panel" aria-labelledby="asset-list-heading">
+            <h3 id="asset-list-heading">Your saved assets</h3>
             <p class="panel-intro">
-              These entries exist only while this page remains open in this browser.
+              These assets are shown from your signed-in EverOwn account.
             </p>
 
             <div class="empty-state" id="empty-state">
-              <p>
-                No browser-session drafts have been added. Add a non-sensitive
-                example above to see how preview entries are labeled.
-              </p>
+              <p id="empty-state-message">Sign in to view and save your assets.</p>
             </div>
 
             <div class="asset-list" id="asset-list" aria-live="polite"></div>
@@ -894,22 +929,151 @@
     </main>
 
     <footer class="footer">
-      EverOwn preview experience. Browser-session drafts are not verified or server-persisted records.
+      EverOwn preview experience. Saved assets are account-based records and are not verified proof of ownership.
     </footer>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
     (() => {
+      /*
+        This is a Supabase publishable browser key, not a secret key.
+        Never place a service-role key in this file.
+      */
+      const SUPABASE_URL = "https://ltrewwvedzimwbviqaora.supabase.co";
+      const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_48PAhXoHy6Cy7ws6JRxhsg_xPo6mbLb";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
       const navToggle = document.getElementById("nav-toggle");
       const nav = document.getElementById("main-navigation");
+
+      const signedOutView = document.getElementById("signed-out-view");
+      const signedInView = document.getElementById("signed-in-view");
+      const accountEmail = document.getElementById("account-email");
+
+      const signInForm = document.getElementById("sign-in-form");
+      const signInEmail = document.getElementById("sign-in-email");
+      const signInPassword = document.getElementById("sign-in-password");
+      const signInButton = document.getElementById("sign-in-button");
+      const signInMessage = document.getElementById("sign-in-message");
+
+      const signUpForm = document.getElementById("sign-up-form");
+      const signUpEmail = document.getElementById("sign-up-email");
+      const signUpPassword = document.getElementById("sign-up-password");
+      const signUpButton = document.getElementById("sign-up-button");
+      const signUpMessage = document.getElementById("sign-up-message");
+
+      const signOutButton = document.getElementById("sign-out-button");
+
       const form = document.getElementById("asset-form");
       const assetName = document.getElementById("asset-name");
+      const assetCategory = document.getElementById("asset-category");
       const assetNote = document.getElementById("asset-note");
+      const assetSubmitButton = document.getElementById("asset-submit-button");
       const assetList = document.getElementById("asset-list");
       const emptyState = document.getElementById("empty-state");
+      const emptyStateMessage = document.getElementById("empty-state-message");
       const formMessage = document.getElementById("form-message");
 
-      const drafts = [];
+      let currentUser = null;
+
+      function setMessage(element, message, isError = false) {
+        element.textContent = message;
+        element.classList.toggle("error", isError);
+      }
+
+      function setButtonLoading(button, isLoading, loadingText, defaultText) {
+        button.disabled = isLoading;
+        button.textContent = isLoading ? loadingText : defaultText;
+      }
+
+      function renderAssets(assets) {
+        assetList.innerHTML = "";
+
+        if (!currentUser) {
+          emptyStateMessage.textContent = "Sign in to view and save your assets.";
+          emptyState.hidden = false;
+          return;
+        }
+
+        if (!assets || assets.length === 0) {
+          emptyStateMessage.textContent = "No saved assets yet. Add a home or vehicle to begin.";
+          emptyState.hidden = false;
+          return;
+        }
+
+        emptyState.hidden = true;
+
+        assets.forEach((asset) => {
+          const item = document.createElement("article");
+          item.className = "asset-item";
+
+          const text = document.createElement("div");
+          const title = document.createElement("h4");
+          const note = document.createElement("p");
+          const status = document.createElement("span");
+
+          title.textContent = asset.name || "Untitled asset";
+          note.textContent = asset.note || "No note added.";
+          status.className = "asset-status";
+          status.textContent = asset.category === "home" ? "Home" : "Vehicle";
+
+          text.appendChild(title);
+          text.appendChild(note);
+          item.appendChild(text);
+          item.appendChild(status);
+          assetList.appendChild(item);
+        });
+      }
+
+      async function loadAssets() {
+        if (!currentUser) {
+          renderAssets([]);
+          return;
+        }
+
+        emptyStateMessage.textContent = "Loading your saved assets…";
+        emptyState.hidden = false;
+        assetList.innerHTML = "";
+
+        /*
+          The fields below match the intended EverOwn assets schema:
+          user_id, name, category, state, and note.
+
+          If your deployed table uses "description" instead of "note",
+          change each "note" below to "description".
+        */
+        const { data, error } = await supabase
+          .from("assets")
+          .select("id, name, category, state, note, created_at")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Unable to load assets:", error);
+          emptyStateMessage.textContent = "Your saved assets could not be loaded right now.";
+          emptyState.hidden = false;
+          return;
+        }
+
+        renderAssets(data);
+      }
+
+      async function updateAuthView(user) {
+        currentUser = user || null;
+        signedOutView.hidden = Boolean(currentUser);
+        signedInView.hidden = !currentUser;
+
+        if (currentUser) {
+          accountEmail.textContent = currentUser.email || "your account";
+          await loadAssets();
+        } else {
+          accountEmail.textContent = "";
+          form.reset();
+          setMessage(formMessage, "");
+          renderAssets([]);
+        }
+      }
 
       navToggle.addEventListener("click", () => {
         const isOpen = nav.classList.toggle("open");
@@ -925,63 +1089,168 @@
         });
       });
 
-      function renderDrafts() {
-        assetList.innerHTML = "";
+      signInForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-        if (drafts.length === 0) {
-          emptyState.hidden = false;
+        const email = signInEmail.value.trim();
+        const password = signInPassword.value;
+
+        if (!email || !password) {
+          setMessage(signInMessage, "Enter your email and password.", true);
           return;
         }
 
-        emptyState.hidden = true;
+        setMessage(signInMessage, "");
+        setButtonLoading(signInButton, true, "Signing in…", "Sign in");
 
-        drafts.forEach((draft) => {
-          const item = document.createElement("article");
-          item.className = "asset-item";
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-          const text = document.createElement("div");
-          const title = document.createElement("h4");
-          const note = document.createElement("p");
-          const status = document.createElement("span");
+        setButtonLoading(signInButton, false, "Signing in…", "Sign in");
 
-          title.textContent = draft.name;
-          note.textContent = draft.note || "No note added.";
-          status.className = "asset-status";
-          status.textContent = "Preview draft";
+        if (error) {
+          setMessage(signInMessage, error.message, true);
+          return;
+        }
 
-          text.appendChild(title);
-          text.appendChild(note);
-          item.appendChild(text);
-          item.appendChild(status);
-          assetList.appendChild(item);
+        signInForm.reset();
+        setMessage(signInMessage, "Signed in successfully.");
+      });
+
+      signUpForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const email = signUpEmail.value.trim();
+        const password = signUpPassword.value;
+
+        if (!email || !password) {
+          setMessage(signUpMessage, "Enter your email and password.", true);
+          return;
+        }
+
+        if (password.length < 6) {
+          setMessage(signUpMessage, "Use a password with at least 6 characters.", true);
+          return;
+        }
+
+        setMessage(signUpMessage, "");
+        setButtonLoading(signUpButton, true, "Creating…", "Create account");
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: "https://thesilenthelper97-beep.github.io/serene-sunflower-e12e30/"
+          }
         });
-      }
 
-      form.addEventListener("submit", (event) => {
+        setButtonLoading(signUpButton, false, "Creating…", "Create account");
+
+        if (error) {
+          setMessage(signUpMessage, error.message, true);
+          return;
+        }
+
+        signUpForm.reset();
+
+        if (data.session) {
+          setMessage(signUpMessage, "Account created and signed in.");
+        } else {
+          setMessage(signUpMessage, "Account created. Check your email to confirm your account, then sign in.");
+        }
+      });
+
+      signOutButton.addEventListener("click", async () => {
+        signOutButton.disabled = true;
+        signOutButton.textContent = "Signing out…";
+
+        const { error } = await supabase.auth.signOut();
+
+        signOutButton.disabled = false;
+        signOutButton.textContent = "Sign out";
+
+        if (error) {
+          console.error("Unable to sign out:", error);
+          setMessage(formMessage, "Unable to sign out right now.", true);
+        }
+      });
+
+      form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const name = assetName.value.trim();
+        const category = assetCategory.value;
         const note = assetNote.value.trim();
 
-        formMessage.classList.remove("error");
+        setMessage(formMessage, "");
+
+        if (!currentUser) {
+          setMessage(formMessage, "Sign in before saving an asset.", true);
+          document.getElementById("account").scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
 
         if (!name) {
-          formMessage.textContent = "Enter an asset name before adding a preview draft.";
-          formMessage.classList.add("error");
+          setMessage(formMessage, "Enter an asset name before saving.", true);
           assetName.focus();
           return;
         }
 
-        drafts.unshift({ name, note });
-        renderDrafts();
+        setButtonLoading(assetSubmitButton, true, "Saving…", "Save asset");
+        setMessage(formMessage, "Saving your asset…");
+
+        const { error } = await supabase
+          .from("assets")
+          .insert({
+            user_id: currentUser.id,
+            name,
+            category,
+            state: "draft",
+            note: note || null
+          });
+
+        setButtonLoading(assetSubmitButton, false, "Saving…", "Save asset");
+
+        if (error) {
+          console.error("Unable to save asset:", error);
+
+          const schemaMessage = error.message && (
+            error.message.includes("note") ||
+            error.message.includes("column")
+          );
+
+          setMessage(
+            formMessage,
+            schemaMessage
+              ? "Your database needs its asset note field mapped before this item can save."
+              : "This asset was not saved. Please try again.",
+            true
+          );
+          return;
+        }
 
         form.reset();
-        formMessage.textContent =
-          "Preview draft added for this browser session only. It has not been saved to an EverOwn server.";
+        setMessage(formMessage, "Saved to your EverOwn account.");
+        await loadAssets();
       });
 
-      renderDrafts();
+      supabase.auth.onAuthStateChange((_event, session) => {
+        updateAuthView(session?.user || null);
+      });
+
+      async function initialize() {
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error("Unable to restore session:", error);
+          renderAssets([]);
+          return;
+        }
+
+        await updateAuthView(data.session?.user || null);
+      }
+
+      initialize();
     })();
   </script>
 </body>
-<
+</html>
