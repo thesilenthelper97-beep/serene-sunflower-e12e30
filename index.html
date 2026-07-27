@@ -8,9 +8,11 @@
   >
   <meta
     name="description"
-    content="EverOwn is a browser-session prototype for managing digital assets."
+    content="EverOwn beta — organize and track your Assets with a persistent account."
   >
   <title>EverOwn — Ownership, made clear</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <style>
     :root {
@@ -85,6 +87,29 @@
       width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
       padding: 24px 0 116px;
+    }
+
+    .auth-shell {
+      display: grid;
+      min-height: 100vh;
+      padding: 24px;
+      place-items: center;
+    }
+
+    .auth-card {
+      width: min(420px, 100%);
+      padding: 28px;
+    }
+
+    .auth-error {
+      margin: 14px 0 0;
+      padding: 12px 14px;
+      border-left: 4px solid var(--danger);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      background: var(--danger-pale);
+      color: var(--danger);
+      font-size: 0.9rem;
+      line-height: 1.45;
     }
 
     .preview-boundary {
@@ -765,10 +790,38 @@
 </head>
 
 <body>
-  <main class="app-shell">
-    <aside class="preview-boundary" aria-label="Preview boundary">
-      <strong>Preview boundary</strong>
-      <span>Browser-session only, not server-persisted.</span>
+  <div class="auth-shell" id="authShell">
+    <div class="auth-card card">
+      <a class="brand" href="#" aria-label="EverOwn">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>EverOwn</span>
+      </a>
+      <p class="lede" style="margin-top:8px;">Beta access. Sign in or create an account to manage your Assets.</p>
+
+      <div id="authError" class="auth-error" hidden role="alert"></div>
+
+      <form id="authForm">
+        <div class="field">
+          <label for="authEmail">Email</label>
+          <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label for="authPassword">Password</label>
+          <input id="authPassword" type="password" autocomplete="current-password" required placeholder="At least 8 characters" minlength="8">
+        </div>
+        <div class="form-actions">
+          <button class="button" id="authSubmitButton" type="submit">Sign in</button>
+          <button class="button secondary" id="authToggleModeButton" type="button">Create an account instead</button>
+        </div>
+      </form>
+      <p class="muted" id="authStatusText" style="margin-top:14px;"></p>
+    </div>
+  </div>
+
+  <main class="app-shell" id="appShell" hidden>
+    <aside class="preview-boundary" aria-label="Beta status">
+      <strong>Beta</strong>
+      <span id="betaBannerText">Signed in. Assets are saved to your account and persist across sessions.</span>
     </aside>
 
     <header class="topbar">
@@ -778,8 +831,11 @@
       </a>
 
       <div class="session-name">
-        <span>Current browser session</span>
+        <span id="sessionLabel">Signed in as</span>
         <strong id="headerName">Your workspace</strong>
+        <div class="button-row" style="margin-top:6px; justify-content:flex-end;">
+          <button class="button secondary small" id="signOutButton" type="button">Sign out</button>
+        </div>
       </div>
     </header>
 
@@ -829,7 +885,7 @@
           <section class="card summary-card" aria-labelledby="actionTitle">
             <p class="eyebrow">Action</p>
             <h2 id="actionTitle">Add an Asset</h2>
-            <p id="actionText">Start with an Asset you own or manage. It will remain visible during this browser session.</p>
+            <p id="actionText">Start with an Asset you own or manage. It will be saved to your account.</p>
             <div class="button-row">
               <button class="button" type="button" data-go-to="assets">Open Assets</button>
             </div>
@@ -858,7 +914,7 @@
       <div class="assets-layout">
         <section class="card form-card" aria-labelledby="assetFormTitle">
           <h2 id="assetFormTitle">Add an Asset</h2>
-          <p class="muted">Each added Asset stays visible for this browser session.</p>
+          <p class="muted">Each added Asset is saved to your account.</p>
 
           <form id="assetForm">
             <input type="hidden" id="editingAssetId">
@@ -938,7 +994,7 @@
 
               <section class="detail-section" aria-labelledby="vaultConnectionTitle">
                 <h3 id="vaultConnectionTitle">the Vault</h3>
-                <p>No file is connected to this Asset in this browser-session preview.</p>
+                <p>No file is connected to this Asset. the Vault is not available yet in this beta.</p>
                 <button class="button secondary small" type="button" data-go-to="vault">Open the Vault</button>
               </section>
             </div>
@@ -958,7 +1014,7 @@
         <section class="card locked-card" aria-labelledby="vaultLockedTitle">
           <h2 id="vaultLockedTitle">File storage is not connected</h2>
           <p>
-            the Vault is the place for records connected to an Asset. In this preview, file selection is available, but no file leaves this browser or becomes stored.
+            the Vault is the place for records connected to an Asset. It is not available yet in this beta: file selection works below, but no file leaves this browser or becomes stored.
           </p>
 
           <div class="field">
@@ -979,7 +1035,7 @@
           <p>
             A complete Vault connection would let you attach records to an Asset and make those connections visible in the Timeline and Ownership Graph.
           </p>
-          <p class="muted">No file is retained after this browser session ends.</p>
+          <p class="muted">No file is uploaded or retained anywhere. Selecting a file here only previews it in this browser.</p>
         </section>
       </div>
     </section>
@@ -994,7 +1050,7 @@
       <section class="card locked-card" aria-labelledby="assistantLockedTitle">
         <h2 id="assistantLockedTitle">Assistant service is not connected</h2>
         <p>
-          Ever Assistant is unavailable in this browser-session preview. Your question will remain visible here only until this browser session ends.
+          Ever Assistant is not available yet in this beta. Your question is not sent anywhere or saved; it stays visible only in this browser until you navigate away.
         </p>
 
         <form class="assistant-form" id="assistantForm">
@@ -1014,13 +1070,13 @@
       <p class="eyebrow">Profile</p>
       <h1>Profile</h1>
       <p class="lede">
-        Set the name shown in this workspace and manage browser-session prototype data.
+        Set the name shown in this workspace and manage local draft data.
       </p>
 
       <div class="profile-layout">
         <section class="card locked-card" aria-labelledby="profileIdentityTitle">
           <h2 id="profileIdentityTitle">Workspace identity</h2>
-          <p>This is not an authenticated account. The name below applies only to this browser session.</p>
+          <p>This is your authenticated EverOwn account. The name below is saved to your profile.</p>
 
           <form id="profileForm">
             <div class="field">
@@ -1035,20 +1091,20 @@
         </section>
 
         <section class="card locked-card" aria-labelledby="profileDataTitle">
-          <h2 id="profileDataTitle">Browser-session data</h2>
+          <h2 id="profileDataTitle">Local draft data</h2>
           <p>
-            Clearing this session removes Assets, selected file details, and the local display name from this prototype.
+            the Vault is not available yet, so any file you select there stays only in this browser and is never uploaded. The same is true for a drafted Ever Assistant question. This clears both. Your saved Assets are not affected.
           </p>
 
           <div class="button-row">
-            <button class="button danger" id="clearSessionButton" type="button">Clear browser session</button>
+            <button class="button secondary" id="clearSessionButton" type="button">Clear local drafts</button>
           </div>
         </section>
       </div>
     </section>
   </main>
 
-  <nav class="nav" aria-label="Primary navigation">
+  <nav class="nav" id="primaryNav" aria-label="Primary navigation" hidden>
     <ul class="nav-list">
       <li><button class="nav-button" type="button" data-go-to="home" aria-current="page">Home</button></li>
       <li><button class="nav-button" type="button" data-go-to="assets">Assets</button></li>
@@ -1060,19 +1116,36 @@
 
   <script>
     (() => {
-      const SESSION_KEY = "everown-prototype-v3";
+      const SUPABASE_URL = "https://ltrewvedzimwbviqaora.supabase.co";
+      const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_48PAhXoHy6Cy7ws6JRxhsg_xPo6mbLb";
 
-      const defaultState = {
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+      const state = {
         profileName: "",
         assets: [],
         selectedFile: null,
         assistantQuestion: ""
       };
 
-      const state = loadState();
       let activeDetailId = null;
+      let authMode = "sign_in";
+      let currentUser = null;
 
       const elements = {
+        authShell: document.getElementById("authShell"),
+        appShell: document.getElementById("appShell"),
+        primaryNav: document.getElementById("primaryNav"),
+        authForm: document.getElementById("authForm"),
+        authEmail: document.getElementById("authEmail"),
+        authPassword: document.getElementById("authPassword"),
+        authSubmitButton: document.getElementById("authSubmitButton"),
+        authToggleModeButton: document.getElementById("authToggleModeButton"),
+        authError: document.getElementById("authError"),
+        authStatusText: document.getElementById("authStatusText"),
+        signOutButton: document.getElementById("signOutButton"),
+        sessionLabel: document.getElementById("sessionLabel"),
+        betaBannerText: document.getElementById("betaBannerText"),
         headerName: document.getElementById("headerName"),
         assetCount: document.getElementById("assetCount"),
         assetSummaryText: document.getElementById("assetSummaryText"),
@@ -1110,27 +1183,6 @@
         clearSessionButton: document.getElementById("clearSessionButton")
       };
 
-      function loadState() {
-        try {
-          const stored = sessionStorage.getItem(SESSION_KEY);
-
-          if (!stored) {
-            return structuredClone(defaultState);
-          }
-
-          return {
-            ...structuredClone(defaultState),
-            ...JSON.parse(stored)
-          };
-        } catch {
-          return structuredClone(defaultState);
-        }
-      }
-
-      function saveState() {
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
-      }
-
       function escapeHtml(value) {
         return String(value ?? "")
           .replaceAll("&", "&amp;")
@@ -1143,6 +1195,175 @@
       function formatCategory(category) {
         return category.charAt(0).toUpperCase() + category.slice(1);
       }
+
+      function showAuthError(message) {
+        elements.authError.hidden = false;
+        elements.authError.textContent = message;
+      }
+
+      function clearAuthError() {
+        elements.authError.hidden = true;
+        elements.authError.textContent = "";
+      }
+
+      function setAuthMode(mode) {
+        authMode = mode;
+        clearAuthError();
+
+        if (mode === "sign_up") {
+          elements.authSubmitButton.textContent = "Create account";
+          elements.authToggleModeButton.textContent = "Sign in instead";
+          elements.authPassword.setAttribute("autocomplete", "new-password");
+        } else {
+          elements.authSubmitButton.textContent = "Sign in";
+          elements.authToggleModeButton.textContent = "Create an account instead";
+          elements.authPassword.setAttribute("autocomplete", "current-password");
+        }
+      }
+
+      elements.authToggleModeButton.addEventListener("click", () => {
+        setAuthMode(authMode === "sign_in" ? "sign_up" : "sign_in");
+      });
+
+      elements.authForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearAuthError();
+
+        const email = elements.authEmail.value.trim();
+        const password = elements.authPassword.value;
+
+        elements.authSubmitButton.disabled = true;
+        elements.authStatusText.textContent = "Working...";
+
+        try {
+          if (authMode === "sign_up") {
+            const { data, error } = await supabase.auth.signUp({ email, password });
+
+            if (error) {
+              throw error;
+            }
+
+            if (!data.session) {
+              elements.authStatusText.textContent =
+                "Account created. Check your email to confirm before signing in.";
+              elements.authSubmitButton.disabled = false;
+              return;
+            }
+          } else {
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+              throw error;
+            }
+          }
+
+          elements.authStatusText.textContent = "";
+        } catch (error) {
+          showAuthError(error.message || "Something went wrong. Please try again.");
+        } finally {
+          elements.authSubmitButton.disabled = false;
+        }
+      });
+
+      elements.signOutButton.addEventListener("click", async () => {
+        await supabase.auth.signOut();
+      });
+
+      async function ensureProfile(user) {
+        const { data: existing, error: fetchError } = await supabase
+          .from("profiles")
+          .select("id, display_name")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (fetchError) {
+          console.error("Profile lookup failed:", fetchError.message);
+          return "";
+        }
+
+        if (existing) {
+          return existing.display_name || "";
+        }
+
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert({ id: user.id, display_name: "" });
+
+        if (insertError) {
+          console.error("Profile creation failed:", insertError.message);
+        }
+
+        return "";
+      }
+
+      async function loadAssets() {
+        const { data, error } = await supabase
+          .from("assets")
+          .select("id, category, name, details, state, owner_confirmed_at, created_at, updated_at")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Failed to load assets:", error.message);
+          state.assets = [];
+          return;
+        }
+
+        state.assets = (data || []).map((row) => ({
+          id: row.id,
+          category: row.category,
+          name: row.name,
+          owner: row.details?.owner || "",
+          identifier: row.details?.identifier || "",
+          notes: row.details?.notes || "",
+          state: row.state,
+          ownerConfirmedAt: row.owner_confirmed_at,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        }));
+      }
+
+      async function enterApp(user) {
+        currentUser = user;
+        elements.authShell.hidden = true;
+        elements.appShell.hidden = false;
+        elements.primaryNav.hidden = false;
+
+        state.profileName = await ensureProfile(user);
+        await loadAssets();
+        renderAll();
+
+        const initialScreen = window.location.hash.replace("#", "");
+        const allowedScreens = ["home", "assets", "vault", "assistant", "profile"];
+        showScreen(allowedScreens.includes(initialScreen) ? initialScreen : "home");
+      }
+
+      function exitApp() {
+        currentUser = null;
+        activeDetailId = null;
+        state.profileName = "";
+        state.assets = [];
+        elements.appShell.hidden = true;
+        elements.primaryNav.hidden = true;
+        elements.authShell.hidden = false;
+        elements.authForm.reset();
+        elements.authStatusText.textContent = "";
+        clearAuthError();
+        setAuthMode("sign_in");
+      }
+
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (session?.user) {
+          enterApp(session.user);
+        } else {
+          exitApp();
+        }
+      });
+
+      supabase.auth.getSession().then(({ data }) => {
+        if (data.session?.user) {
+          enterApp(data.session.user);
+        }
+      });
 
       function calculateAssetHealth(asset) {
         const factors = [
@@ -1185,9 +1406,9 @@
       function renderHome() {
         const health = calculateOwnershipHealth();
         const factors = getFactorCounts();
-        const name = state.profileName.trim();
+        const name = (state.profileName || "").trim();
 
-        elements.headerName.textContent = name || "Your workspace";
+        elements.headerName.textContent = name || currentUser?.email || "Your workspace";
         elements.assetCount.textContent = factors.assets;
         elements.homeHealthValue.textContent = `${health}%`;
         setRing(elements.homeRingProgress, health);
@@ -1202,14 +1423,14 @@
           elements.assetSummaryText.textContent =
             "Add your first Asset to begin building an ownership record.";
           elements.actionText.textContent =
-            "Start with an Asset you own or manage. It will remain visible during this browser session.";
+            "Start with an Asset you own or manage. It will be saved to your account.";
           elements.upcomingText.textContent =
             "After adding an Asset, complete ownership details and identifying information to strengthen Ownership Health.";
           return;
         }
 
         elements.assetSummaryText.textContent =
-          `${factors.assets} Asset${factors.assets === 1 ? "" : "s"} visible in this browser session.`;
+          `${factors.assets} Asset${factors.assets === 1 ? "" : "s"} saved to your account.`;
 
         const incomplete = state.assets.find((asset) => !asset.owner || !asset.identifier);
 
@@ -1217,12 +1438,12 @@
           elements.actionText.textContent =
             `Complete ownership details for ${incomplete.name} to strengthen its Ownership Health.`;
           elements.upcomingText.textContent =
-            "Review the Timeline and Ownership Graph inside an Asset record, then connect records through the Vault when storage is available.";
+            "Review the Timeline inside an Asset record. the Vault and Ownership Graph connections are not available yet in this beta.";
         } else {
           elements.actionText.textContent =
-            "Your visible Assets include ownership and identifying information. Review each record when details change.";
+            "Your Assets include ownership and identifying information. Review each record when details change.";
           elements.upcomingText.textContent =
-            "the Vault is ready for file selection in this preview, but no file storage is connected.";
+            "the Vault is not available yet in this beta.";
         }
       }
 
@@ -1231,7 +1452,7 @@
           elements.assetList.innerHTML = `
             <div class="empty-state">
               <h3>No Assets yet</h3>
-              <p>Add an Asset with the form. It will appear here immediately and remain visible during this browser session.</p>
+              <p>Add an Asset with the form. It will be saved to your account and appear here.</p>
               <button class="button" type="button" data-go-to="assets" data-focus-asset-form="true">Add your first Asset</button>
             </div>
           `;
@@ -1291,14 +1512,13 @@
           <li>Asset added on ${createdDate}.</li>
           <li>${asset.owner ? "Ownership detail added." : "Ownership detail still needed."}</li>
           <li>${asset.identifier ? "Identifying information added." : "Identifying information still needed."}</li>
+          <li>${asset.state === "owner_confirmed" ? "Ownership confirmed." : "Ownership not yet confirmed."}</li>
         `;
 
         elements.ownershipGraph.innerHTML = `
           <div class="graph-node"><strong>Asset</strong><br>${escapeHtml(asset.name)}</div>
           <div class="graph-connection" aria-hidden="true"></div>
           <div class="graph-node"><strong>Owner</strong><br>${asset.owner ? escapeHtml(asset.owner) : "Not added"}</div>
-          <div class="graph-connection" aria-hidden="true"></div>
-          <div class="graph-node"><strong>the Vault</strong><br>No connected record in this preview</div>
         `;
 
         elements.detailHealthText.textContent =
@@ -1309,6 +1529,7 @@
         elements.assetForm.reset();
         elements.editingAssetId.value = "";
         elements.assetSubmitButton.textContent = "Add Asset";
+        elements.assetSubmitButton.disabled = false;
         elements.assetCancelButton.hidden = true;
       }
 
@@ -1347,7 +1568,7 @@
         elements.vaultReceipt.innerHTML = `
           <strong>File selected locally:</strong> ${escapeHtml(file.name)}<br>
           ${escapeHtml(file.type || "Unknown file type")} · ${sizeInKb} KB<br>
-          This file has not been uploaded, stored, or connected to an Asset.
+          This file has not been uploaded, stored, or connected to an Asset. the Vault is not available yet in this beta.
         `;
       }
 
@@ -1360,9 +1581,9 @@
 
         elements.assistantReceipt.hidden = false;
         elements.assistantReceipt.innerHTML = `
-          <strong>Question received in this browser session:</strong><br>
-          “${escapeHtml(state.assistantQuestion)}”<br><br>
-          Ever Assistant cannot process this question in the current preview.
+          <strong>Question received:</strong><br>
+          "${escapeHtml(state.assistantQuestion)}"<br><br>
+          Ever Assistant cannot process this question yet in this beta.
         `;
       }
 
@@ -1437,7 +1658,7 @@
         }
       });
 
-      elements.assetForm.addEventListener("submit", (event) => {
+      elements.assetForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const assetData = {
@@ -1454,32 +1675,58 @@
         }
 
         const existingId = elements.editingAssetId.value;
+        const details = {
+          owner: assetData.owner,
+          identifier: assetData.identifier,
+          notes: assetData.notes
+        };
 
-        if (existingId) {
-          const index = state.assets.findIndex((asset) => asset.id === existingId);
+        elements.assetSubmitButton.disabled = true;
 
-          if (index !== -1) {
-            state.assets[index] = {
-              ...state.assets[index],
-              ...assetData,
-              updatedAt: new Date().toISOString()
-            };
+        try {
+          if (existingId) {
+            const { error } = await supabase
+              .from("assets")
+              .update({
+                name: assetData.name,
+                category: assetData.category,
+                details
+              })
+              .eq("id", existingId);
+
+            if (error) {
+              throw error;
+            }
+
             activeDetailId = existingId;
+          } else {
+            const { data, error } = await supabase
+              .from("assets")
+              .insert({
+                owner_id: currentUser.id,
+                name: assetData.name,
+                category: assetData.category,
+                details
+              })
+              .select("id")
+              .single();
+
+            if (error) {
+              throw error;
+            }
+
+            activeDetailId = data.id;
           }
-        } else {
-          const newAsset = {
-            id: crypto.randomUUID(),
-            ...assetData,
-            createdAt: new Date().toISOString()
-          };
 
-          state.assets.unshift(newAsset);
-          activeDetailId = newAsset.id;
+          await loadAssets();
+          resetAssetForm();
+          renderAll();
+        } catch (error) {
+          console.error("Failed to save asset:", error.message);
+          window.alert(`Could not save this Asset: ${error.message}`);
+        } finally {
+          elements.assetSubmitButton.disabled = false;
         }
-
-        saveState();
-        resetAssetForm();
-        renderAll();
       });
 
       elements.assetCancelButton.addEventListener("click", resetAssetForm);
@@ -1502,14 +1749,12 @@
           size: file.size
         };
 
-        saveState();
         renderVault();
       });
 
       elements.clearVaultFile.addEventListener("click", () => {
         state.selectedFile = null;
         elements.vaultFile.value = "";
-        saveState();
         renderVault();
       });
 
@@ -1524,49 +1769,54 @@
         }
 
         state.assistantQuestion = question;
-        saveState();
         renderAssistant();
       });
 
-      elements.profileForm.addEventListener("submit", (event) => {
+      elements.profileForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        state.profileName = elements.profileName.value.trim();
-        saveState();
-        renderHome();
+        const newName = elements.profileName.value.trim();
 
-        elements.profileReceipt.hidden = false;
-        elements.profileReceipt.textContent =
-          state.profileName
-            ? `Display name saved for this browser session: ${state.profileName}.`
-            : "Display name cleared for this browser session.";
+        try {
+          const { error } = await supabase
+            .from("profiles")
+            .update({ display_name: newName })
+            .eq("id", currentUser.id);
+
+          if (error) {
+            throw error;
+          }
+
+          state.profileName = newName;
+          renderHome();
+
+          elements.profileReceipt.hidden = false;
+          elements.profileReceipt.textContent = newName
+            ? `Display name saved: ${newName}.`
+            : "Display name cleared.";
+        } catch (error) {
+          window.alert(`Could not save your display name: ${error.message}`);
+        }
       });
 
       elements.clearSessionButton.addEventListener("click", () => {
         const confirmed = window.confirm(
-          "Clear all Assets, selected file details, assistant question, and display name from this browser session?"
+          "Clear the locally selected Vault file and Ever Assistant draft question? Your saved Assets are not affected."
         );
 
         if (!confirmed) {
           return;
         }
 
-        sessionStorage.removeItem(SESSION_KEY);
-        Object.assign(state, structuredClone(defaultState));
-        activeDetailId = null;
+        state.selectedFile = null;
+        state.assistantQuestion = "";
         elements.vaultFile.value = "";
         elements.assistantQuestion.value = "";
-        elements.profileReceipt.hidden = true;
-        resetAssetForm();
-        renderAll();
-        showScreen("home");
+        renderVault();
+        renderAssistant();
       });
 
-      const initialScreen = window.location.hash.replace("#", "");
-      const allowedScreens = ["home", "assets", "vault", "assistant", "profile"];
-
-      renderAll();
-      showScreen(allowedScreens.includes(initialScreen) ? initialScreen : "home");
+      setAuthMode("sign_in");
     })();
   </script>
 </body>
