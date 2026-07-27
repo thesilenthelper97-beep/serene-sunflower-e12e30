@@ -2,1254 +2,1571 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#24362a">
-  <meta name="description" content="EverOwn is a calm workspace for organizing ownership information.">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+  <meta
+    name="description"
+    content="EverOwn is a browser-session prototype for managing digital assets."
+  >
   <title>EverOwn — Ownership, made clear</title>
 
   <style>
     :root {
-      --ink: #172219;
-      --ink-soft: #415047;
-      --paper: #f8f5ed;
-      --paper-2: #eee9dc;
-      --card: #fffdf7;
-      --sage: #78917a;
-      --sage-deep: #24362a;
-      --sage-pale: #e1eade;
-      --brass: #a47a32;
-      --brass-pale: #f4e6c6;
-      --line: #d7d1c1;
-      --danger: #a33c34;
-      --danger-pale: #f8e2df;
-      --success: #356b42;
-      --shadow: 0 18px 44px rgba(28, 39, 29, 0.12);
-      --radius: 20px;
-      --radius-small: 13px;
-      --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+      --ink: #102d26;
+      --ink-soft: #315148;
+      --paper: #f7f1e5;
+      --paper-2: #ede4d2;
+      --card: #fffaf0;
+      --sage: #789c84;
+      --sage-deep: #496f5a;
+      --sage-pale: #dfe9dd;
+      --brass: #b88a36;
+      --brass-pale: #f0dfb7;
+      --line: #d7ccb7;
+      --danger: #a53f35;
+      --danger-pale: #f9e2dd;
+      --success: #316c4d;
+      --shadow: 0 18px 42px rgba(16, 45, 38, 0.1);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
+      --focus: 0 0 0 3px var(--paper), 0 0 0 6px var(--brass);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     html {
       background: var(--paper);
-      scroll-behavior: smooth;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     body {
       min-width: 320px;
       margin: 0;
-      color: var(--ink);
       background:
-        radial-gradient(circle at 92% 0%, rgba(164, 122, 50, 0.14), transparent 28rem),
-        radial-gradient(circle at 4% 30%, rgba(120, 145, 122, 0.11), transparent 25rem),
+        radial-gradient(circle at top right, rgba(184, 138, 54, 0.13), transparent 32rem),
         var(--paper);
-      font-family: var(--serif);
     }
 
-    button, input, textarea { font: inherit; }
-    button, a { -webkit-tap-highlight-color: transparent; }
-    button { cursor: pointer; }
-    button:disabled { cursor: not-allowed; opacity: 0.62; }
-    a { color: inherit; text-decoration: none; }
-
-    :focus-visible {
-      outline: 3px solid rgba(164, 122, 50, 0.65);
-      outline-offset: 3px;
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
     }
 
-    .shell {
-      width: min(1160px, calc(100% - 28px));
+    button,
+    input,
+    select,
+    textarea,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    a:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    .app-shell {
+      width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 16px 0 42px;
+      padding: 24px 0 116px;
+    }
+
+    .preview-boundary {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      padding: 13px 15px;
+      border: 1px solid var(--brass);
+      border-radius: var(--radius-sm);
+      background: var(--brass-pale);
+      color: var(--ink);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .preview-boundary strong {
+      white-space: nowrap;
     }
 
     .topbar {
-      position: relative;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 6px 0 18px;
-      border-bottom: 1px solid var(--line);
+      gap: 18px;
+      margin-bottom: 30px;
     }
 
     .brand {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      min-width: 0;
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: 0.01em;
-    }
-
-    .brand-mark {
-      display: grid;
-      width: 34px;
-      height: 34px;
-      flex: 0 0 auto;
-      place-items: center;
-      color: #fffdf7;
-      background: var(--sage-deep);
-      border-radius: 50% 50% 50% 10%;
-      box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.12);
-      font-family: var(--sans);
-      font-weight: 800;
-    }
-
-    .nav-toggle {
-      display: none;
-      padding: 9px 12px;
       color: var(--ink);
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      font-family: var(--sans);
-      font-size: 0.88rem;
+      text-decoration: none;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.65rem;
       font-weight: 700;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .nav a {
-      padding: 9px 11px;
-      color: var(--ink-soft);
-      border-radius: 9px;
-      font-family: var(--sans);
-      font-size: 0.86rem;
-      font-weight: 650;
-      white-space: nowrap;
-    }
-
-    .nav a:hover, .nav a.active {
-      color: var(--ink);
-      background: var(--sage-pale);
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.12fr) minmax(290px, 0.88fr);
-      gap: 28px;
-      align-items: stretch;
-      padding: 50px 0 28px;
-    }
-
-    .eyebrow {
-      margin: 0 0 12px;
-      color: var(--brass);
-      font-family: var(--sans);
-      font-size: 0.74rem;
-      font-weight: 800;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-    }
-
-    h1, h2, h3, p { margin-top: 0; }
-
-    h1 {
-      max-width: 10ch;
-      margin-bottom: 18px;
-      font-size: clamp(3rem, 8vw, 5.9rem);
-      font-weight: 500;
-      letter-spacing: -0.06em;
-      line-height: 0.92;
-    }
-
-    .hero-copy {
-      max-width: 55ch;
-      margin-bottom: 22px;
-      color: var(--ink-soft);
-      font-size: 1.1rem;
-      line-height: 1.65;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .button {
-      display: inline-flex;
-      min-height: 45px;
-      align-items: center;
-      justify-content: center;
-      padding: 11px 16px;
-      border: 1px solid transparent;
-      border-radius: 11px;
-      font-family: var(--sans);
-      font-size: 0.9rem;
-      font-weight: 750;
-      transition: transform 160ms ease, background 160ms ease;
-    }
-
-    .button:hover { transform: translateY(-1px); }
-
-    .button-primary {
-      color: #fffdf7;
-      background: var(--sage-deep);
-    }
-
-    .button-secondary {
-      color: var(--ink);
-      background: transparent;
-      border-color: var(--line);
-    }
-
-    .assistant-card {
-      display: flex;
-      min-height: 326px;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 25px;
-      color: #fffdf7;
-      background:
-        radial-gradient(circle at 88% 16%, rgba(245, 214, 149, 0.2), transparent 10rem),
-        linear-gradient(145deg, #3d5841, #203124);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .availability {
-      display: inline-flex;
-      width: fit-content;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 999px;
-      color: #fff2d3;
-      font-family: var(--sans);
-      font-size: 0.76rem;
-      font-weight: 700;
-    }
-
-    .availability-dot {
-      width: 7px;
-      height: 7px;
-      background: #e3be66;
-      border-radius: 50%;
-    }
-
-    .assistant-card h2 {
-      margin: 18px 0 10px;
-      font-size: 1.8rem;
-      font-weight: 500;
-      letter-spacing: -0.03em;
-    }
-
-    .assistant-card p {
-      max-width: 38ch;
-      margin-bottom: 0;
-      color: rgba(255, 253, 247, 0.85);
-      font-family: var(--sans);
-      font-size: 0.92rem;
-      line-height: 1.6;
-    }
-
-    .assistant-card .small-note {
-      padding-top: 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      color: rgba(255, 253, 247, 0.7);
-      font-size: 0.79rem;
-    }
-
-    .trust-banner {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 13px;
-      margin: 8px 0 34px;
-      padding: 17px;
-      background: #fff9ed;
-      border: 1px solid #e5d1a7;
-      border-radius: var(--radius-small);
-    }
-
-    .trust-icon {
-      display: grid;
-      width: 28px;
-      height: 28px;
-      place-items: center;
-      color: #654b17;
-      background: var(--brass-pale);
-      border-radius: 50%;
-      font-family: var(--sans);
-      font-size: 0.9rem;
-      font-weight: 900;
-    }
-
-    .trust-banner h2 {
-      margin-bottom: 5px;
-      font-size: 1.02rem;
-      font-weight: 650;
-    }
-
-    .trust-banner p {
-      margin-bottom: 0;
-      color: #62583e;
-      font-family: var(--sans);
-      font-size: 0.89rem;
-      line-height: 1.55;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 0 0 15px;
-    }
-
-    .section-head h2 {
-      margin: 0;
-      font-size: clamp(1.65rem, 4vw, 2.15rem);
-      font-weight: 500;
       letter-spacing: -0.04em;
     }
 
-    .section-head p {
-      max-width: 45ch;
-      margin: 0;
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      border: 2px solid var(--brass);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 8px var(--brass);
+    }
+
+    .session-name {
       color: var(--ink-soft);
-      font-family: var(--sans);
-      font-size: 0.87rem;
-      line-height: 1.5;
+      font-size: 0.92rem;
       text-align: right;
     }
 
-    .workspace-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 15px;
+    .session-name strong {
+      display: block;
+      color: var(--ink);
+      font-size: 1rem;
     }
 
-    .workspace-card {
-      display: flex;
-      min-height: 206px;
-      flex-direction: column;
-      padding: 21px;
-      background: rgba(255, 253, 247, 0.82);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-small);
-      transition: border-color 160ms ease, transform 160ms ease;
+    .screen {
+      display: none;
+      animation: screen-in 280ms ease both;
     }
 
-    .workspace-card:hover {
-      border-color: var(--sage);
-      transform: translateY(-2px);
+    .screen.is-active {
+      display: block;
     }
 
-    .card-number {
-      display: grid;
-      width: 29px;
-      height: 29px;
-      margin-bottom: 18px;
-      place-items: center;
+    .eyebrow {
+      margin: 0 0 8px;
       color: var(--sage-deep);
-      background: var(--sage-pale);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      letter-spacing: -0.035em;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin-bottom: 12px;
+      font-size: clamp(2.2rem, 6vw, 4.4rem);
+      line-height: 0.98;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+      font-size: clamp(1.55rem, 3vw, 2.2rem);
+    }
+
+    h3 {
+      margin-bottom: 7px;
+      font-size: 1.22rem;
+    }
+
+    .lede {
+      max-width: 660px;
+      color: var(--ink-soft);
+      font-size: 1.06rem;
+      line-height: 1.6;
+    }
+
+    .hero-grid,
+    .assets-layout,
+    .vault-layout,
+    .profile-layout {
+      display: grid;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+      margin-top: 28px;
+    }
+
+    .assets-layout {
+      grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+      margin-top: 24px;
+    }
+
+    .vault-layout,
+    .profile-layout {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 24px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 250, 240, 0.88);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 24px;
+    }
+
+    .health-card {
+      display: grid;
+      gap: 20px;
+      justify-items: center;
+      text-align: center;
+      padding: 27px 22px;
+      overflow: hidden;
+    }
+
+    .health-ring {
+      position: relative;
+      display: grid;
+      width: 208px;
+      height: 208px;
+      place-items: center;
+    }
+
+    .health-ring svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      transform: rotate(-90deg);
+    }
+
+    .health-ring circle {
+      fill: none;
+      stroke-width: 12;
+    }
+
+    .ring-track {
+      stroke: var(--paper-2);
+    }
+
+    .ring-progress {
+      stroke: var(--brass);
+      stroke-linecap: round;
+      stroke-dasharray: 527.8;
+      stroke-dashoffset: 527.8;
+      filter: drop-shadow(0 3px 4px rgba(184, 138, 54, 0.24));
+      transition: stroke-dashoffset 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .ring-center {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 135px;
+      height: 135px;
+      border: 1px solid var(--brass-pale);
       border-radius: 50%;
-      font-family: var(--sans);
+      background: var(--paper);
+    }
+
+    .ring-value {
+      display: block;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2.55rem;
+      font-weight: 700;
+      letter-spacing: -0.06em;
+      line-height: 1;
+    }
+
+    .ring-label {
+      display: block;
+      margin-top: 5px;
+      color: var(--ink-soft);
       font-size: 0.76rem;
       font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    .workspace-card h3 {
-      margin-bottom: 9px;
-      font-size: 1.2rem;
-      font-weight: 600;
+    .health-factors {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      text-align: left;
     }
 
-    .workspace-card p {
-      margin-bottom: 17px;
+    .health-factors li {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
       color: var(--ink-soft);
-      font-family: var(--sans);
       font-size: 0.9rem;
-      line-height: 1.55;
     }
 
-    .card-link {
-      margin-top: auto;
-      color: var(--sage-deep);
-      font-family: var(--sans);
-      font-size: 0.86rem;
-      font-weight: 800;
+    .health-factors strong {
+      color: var(--ink);
     }
 
-    .asset-section {
-      margin-top: 40px;
-      scroll-margin-top: 18px;
-    }
-
-    .asset-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-      gap: 17px;
-    }
-
-    .asset-form,
-    .asset-list-panel,
-    .auth-panel {
-      padding: 22px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-    }
-
-    .auth-panel {
-      margin-top: 26px;
-    }
-
-    .asset-form h3,
-    .asset-list-panel h3,
-    .auth-panel h2 {
-      margin-bottom: 7px;
-      font-size: 1.32rem;
-      font-weight: 550;
-      letter-spacing: -0.025em;
-    }
-
-    .panel-intro {
-      margin-bottom: 18px;
+    .health-explanation {
       color: var(--ink-soft);
-      font-family: var(--sans);
-      font-size: 0.88rem;
+      font-size: 0.91rem;
       line-height: 1.55;
     }
 
-    .auth-grid {
+    .summary-stack {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 17px;
+      gap: 14px;
+    }
+
+    .summary-card {
+      padding: 20px;
+    }
+
+    .summary-card p {
+      margin-bottom: 0;
+      color: var(--ink-soft);
+      line-height: 1.5;
+    }
+
+    .metric {
+      margin-bottom: 7px;
+      color: var(--brass);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      line-height: 1;
+    }
+
+    .button-row,
+    .asset-actions,
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .button {
+      min-height: 44px;
+      padding: 10px 15px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--paper);
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .button:hover {
+      background: var(--sage-deep);
+      transform: translateY(-1px);
+    }
+
+    .button.secondary {
+      border-color: var(--ink);
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .button.secondary:hover {
+      background: var(--sage-pale);
+    }
+
+    .button.danger {
+      border-color: var(--danger);
+      background: transparent;
+      color: var(--danger);
+    }
+
+    .button.danger:hover {
+      background: var(--danger-pale);
+    }
+
+    .button.small {
+      min-height: 36px;
+      padding: 7px 11px;
+      font-size: 0.88rem;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .section-heading p {
+      max-width: 620px;
+      margin-bottom: 0;
+      color: var(--ink-soft);
+      line-height: 1.5;
+    }
+
+    .form-card {
+      position: sticky;
+      top: 16px;
+      padding: 22px;
     }
 
     .field {
       display: grid;
       gap: 7px;
-      margin-bottom: 13px;
+      margin-bottom: 15px;
     }
 
-    .field label {
+    label {
       color: var(--ink);
-      font-family: var(--sans);
+      font-size: 0.89rem;
+      font-weight: 800;
+    }
+
+    .field-note,
+    .muted {
+      color: var(--ink-soft);
       font-size: 0.84rem;
-      font-weight: 750;
+      line-height: 1.45;
     }
 
-    .field input,
-    .field textarea {
+    input,
+    select,
+    textarea {
       width: 100%;
-      padding: 11px 12px;
-      color: var(--ink);
-      background: #fffefa;
+      min-height: 44px;
+      padding: 10px 12px;
       border: 1px solid var(--line);
-      border-radius: 10px;
-      font-family: var(--sans);
-      font-size: 0.94rem;
+      border-radius: var(--radius-sm);
+      background: var(--paper);
+      color: var(--ink);
     }
 
-    .field textarea {
-      min-height: 85px;
+    textarea {
+      min-height: 96px;
       resize: vertical;
     }
 
-    .field input:focus,
-    .field textarea:focus {
-      border-color: var(--sage);
-      outline: 3px solid rgba(120, 145, 122, 0.18);
-    }
-
-    .form-note {
-      margin: 12px 0 0;
-      color: var(--ink-soft);
-      font-family: var(--sans);
-      font-size: 0.78rem;
-      line-height: 1.5;
-    }
-
-    .form-message {
-      min-height: 22px;
-      margin: 11px 0 0;
-      color: var(--success);
-      font-family: var(--sans);
-      font-size: 0.84rem;
-      font-weight: 700;
-      line-height: 1.45;
-    }
-
-    .form-message.error {
-      color: var(--danger);
-    }
-
-    .auth-signed-in {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      padding: 15px;
-      background: var(--sage-pale);
-      border: 1px solid rgba(120, 145, 122, 0.36);
-      border-radius: var(--radius-small);
-      font-family: var(--sans);
-    }
-
-    .auth-signed-in p {
-      margin: 0;
-      font-size: 0.88rem;
-      line-height: 1.45;
-    }
-
-    .empty-state {
-      display: grid;
-      min-height: 210px;
-      place-items: center;
-      padding: 25px;
-      color: var(--ink-soft);
-      text-align: center;
-    }
-
-    .empty-state p {
-      max-width: 35ch;
-      margin: 0;
-      font-family: var(--sans);
-      font-size: 0.91rem;
-      line-height: 1.6;
+    input::placeholder,
+    textarea::placeholder {
+      color: #71857d;
     }
 
     .asset-list {
       display: grid;
-      gap: 10px;
+      gap: 14px;
     }
 
-    .asset-item {
+    .asset-card {
+      padding: 20px;
+      animation: card-in 360ms ease both;
+    }
+
+    .asset-card-header {
       display: flex;
+      gap: 16px;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 14px;
-      padding: 14px;
-      background: #faf8f1;
-      border: 1px solid var(--line);
-      border-radius: 11px;
     }
 
-    .asset-item h4 {
-      margin: 0 0 4px;
-      font-family: var(--sans);
-      font-size: 0.96rem;
+    .asset-type {
+      margin: 0 0 5px;
+      color: var(--sage-deep);
+      font-size: 0.77rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    .asset-item p {
+    .asset-meta {
       margin: 0;
       color: var(--ink-soft);
-      font-family: var(--sans);
-      font-size: 0.8rem;
       line-height: 1.45;
     }
 
-    .asset-status {
+    .asset-health {
       display: inline-flex;
       flex: 0 0 auto;
-      padding: 5px 7px;
-      color: #665028;
-      background: var(--brass-pale);
-      border-radius: 999px;
-      font-family: var(--sans);
-      font-size: 0.7rem;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .vault-section,
-    .graph-section,
-    .assistant-section {
-      margin-top: 40px;
-      scroll-margin-top: 18px;
-    }
-
-    .unavailable-card {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 22px;
       align-items: center;
-      padding: 27px;
-      color: #fffdf7;
-      background: var(--sage-deep);
-      border-radius: var(--radius);
+      justify-content: center;
+      min-width: 54px;
+      min-height: 54px;
+      border: 2px solid var(--brass);
+      border-radius: 50%;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 700;
     }
 
-    .unavailable-card h2 {
-      margin-bottom: 9px;
-      font-size: 1.7rem;
-      font-weight: 500;
+    .asset-card .asset-actions {
+      margin-top: 18px;
     }
 
-    .unavailable-card p {
-      max-width: 58ch;
-      margin-bottom: 0;
-      color: rgba(255, 253, 247, 0.82);
-      font-family: var(--sans);
-      font-size: 0.92rem;
-      line-height: 1.6;
+    .empty-state {
+      padding: 34px 24px;
+      border: 1px dashed var(--sage);
+      border-radius: var(--radius-lg);
+      background: rgba(223, 233, 221, 0.48);
+      text-align: center;
     }
 
-    .unavailable-label {
-      padding: 9px 11px;
-      color: #fff2d3;
-      background: rgba(255, 255, 255, 0.11);
-      border: 1px solid rgba(255, 255, 255, 0.17);
-      border-radius: 999px;
-      font-family: var(--sans);
-      font-size: 0.76rem;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .footer {
-      margin-top: 46px;
-      padding: 18px 0 0;
+    .empty-state p {
+      max-width: 450px;
+      margin: 0 auto 17px;
       color: var(--ink-soft);
-      border-top: 1px solid var(--line);
-      font-family: var(--sans);
-      font-size: 0.8rem;
+      line-height: 1.55;
+    }
+
+    .detail-panel {
+      margin-top: 18px;
+      padding: 23px;
+    }
+
+    .detail-panel[hidden] {
+      display: none;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .detail-section {
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--paper);
+    }
+
+    .detail-section p:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .timeline li {
+      position: relative;
+      padding-left: 19px;
+      color: var(--ink-soft);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .timeline li::before {
+      position: absolute;
+      top: 0.43rem;
+      left: 0;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--brass);
+      content: "";
+    }
+
+    .graph {
+      display: grid;
+      gap: 11px;
+    }
+
+    .graph-node {
+      padding: 11px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--sage-pale);
+      color: var(--ink);
+      font-size: 0.9rem;
+    }
+
+    .graph-connection {
+      width: 2px;
+      height: 16px;
+      margin-left: 20px;
+      background: var(--brass);
+    }
+
+    .locked-card {
+      padding: 25px;
+    }
+
+    .locked-card p {
+      color: var(--ink-soft);
+      line-height: 1.58;
+    }
+
+    .upload-receipt,
+    .assistant-receipt,
+    .profile-receipt {
+      margin-top: 17px;
+      padding: 14px;
+      border-left: 4px solid var(--brass);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      background: var(--brass-pale);
+      color: var(--ink);
       line-height: 1.5;
     }
 
-    [hidden] { display: none !important; }
+    .upload-receipt[hidden],
+    .assistant-receipt[hidden],
+    .profile-receipt[hidden] {
+      display: none;
+    }
+
+    .assistant-form {
+      margin-top: 20px;
+    }
+
+    .nav {
+      position: fixed;
+      z-index: 20;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 9px max(12px, env(safe-area-inset-left)) calc(9px + env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(215, 204, 183, 0.95);
+      background: rgba(247, 241, 229, 0.95);
+      box-shadow: 0 -10px 30px rgba(16, 45, 38, 0.08);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav-list {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      width: min(690px, 100%);
+      margin: 0 auto;
+      padding: 0;
+      list-style: none;
+    }
+
+    .nav-button {
+      display: grid;
+      min-height: 48px;
+      place-items: center;
+      padding: 6px 4px;
+      border: 0;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--ink-soft);
+      font-size: clamp(0.63rem, 2.5vw, 0.8rem);
+      font-weight: 800;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .nav-button[aria-current="page"] {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes screen-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes card-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
     @media (max-width: 780px) {
-      .shell {
-        width: min(100% - 22px, 1160px);
-        padding-top: 10px;
+      .app-shell {
+        width: min(100% - 24px, 680px);
+        padding-top: 15px;
       }
 
-      .topbar { padding-bottom: 12px; }
-      .nav-toggle { display: block; }
-
-      .nav {
-        position: absolute;
-        z-index: 10;
-        top: 58px;
-        right: 0;
-        left: 0;
-        display: none;
-        flex-direction: column;
-        align-items: stretch;
-        padding: 9px;
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: var(--radius-small);
-        box-shadow: var(--shadow);
+      .topbar {
+        margin-bottom: 23px;
       }
 
-      .nav.open { display: flex; }
-      .nav a { padding: 12px; }
-
-      .hero {
-        grid-template-columns: 1fr;
-        gap: 18px;
-        padding-top: 38px;
-      }
-
-      h1 { max-width: 12ch; }
-      .assistant-card { min-height: 276px; }
-      .section-head { display: block; }
-
-      .section-head p {
-        margin-top: 8px;
-        text-align: left;
-      }
-
-      .workspace-grid,
-      .asset-layout,
-      .auth-grid {
+      .hero-grid,
+      .assets-layout,
+      .vault-layout,
+      .profile-layout,
+      .detail-grid {
         grid-template-columns: 1fr;
       }
 
-      .unavailable-card {
-        grid-template-columns: 1fr;
-        gap: 15px;
+      .form-card {
+        position: static;
       }
 
-      .unavailable-label { width: fit-content; }
+      .session-name {
+        max-width: 130px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="shell">
+  <main class="app-shell">
+    <aside class="preview-boundary" aria-label="Preview boundary">
+      <strong>Preview boundary</strong>
+      <span>Browser-session only, not server-persisted.</span>
+    </aside>
+
     <header class="topbar">
-      <a class="brand" href="#home" aria-label="EverOwn home">
-        <span class="brand-mark" aria-hidden="true">E</span>
+      <a class="brand" href="#home" data-screen-link="home" aria-label="EverOwn Home">
+        <span class="brand-mark" aria-hidden="true"></span>
         <span>EverOwn</span>
       </a>
 
-      <button class="nav-toggle" id="nav-toggle" type="button" aria-controls="main-navigation" aria-expanded="false">
-        Menu
-      </button>
-
-      <nav class="nav" id="main-navigation" aria-label="Main navigation">
-        <a class="active" href="#home">Home</a>
-        <a href="#assets">Assets</a>
-        <a href="#vault">Vault</a>
-        <a href="#ownership-graph">Ownership Graph</a>
-        <a href="#ever-assistant">Ever Assistant</a>
-      </nav>
+      <div class="session-name">
+        <span>Current browser session</span>
+        <strong id="headerName">Your workspace</strong>
+      </div>
     </header>
 
-    <main id="home">
-      <section class="hero" aria-labelledby="page-title">
-        <div>
-          <p class="eyebrow">A quieter way to organize</p>
-          <h1 id="page-title">Keep ownership clear.</h1>
-          <p class="hero-copy">
-            EverOwn is a calm workspace for organizing ownership information
-            with care, context, and a clear account-based record of what you save.
-          </p>
+    <section class="screen is-active" id="home" data-screen="home" tabindex="-1">
+      <p class="eyebrow">Home</p>
+      <h1>Ownership, made clear.</h1>
+      <p class="lede">
+        Keep each Asset visible, understand its Ownership Health, and see the next useful Action.
+      </p>
 
-          <div class="hero-actions">
-            <a class="button button-primary" href="#assets">Explore assets</a>
-            <a class="button button-secondary" href="#vault">View availability</a>
+      <div class="hero-grid">
+        <section class="card health-card" aria-labelledby="homeHealthTitle">
+          <div class="health-ring" aria-label="Ownership Health">
+            <svg viewBox="0 0 200 200" role="img" aria-labelledby="homeHealthTitle">
+              <circle class="ring-track" cx="100" cy="100" r="84"></circle>
+              <circle class="ring-progress" id="homeRingProgress" cx="100" cy="100" r="84"></circle>
+            </svg>
+
+            <div class="ring-center">
+              <span class="ring-value" id="homeHealthValue">0%</span>
+              <span class="ring-label">Health</span>
+            </div>
           </div>
-        </div>
 
-        <aside class="assistant-card" aria-labelledby="assistant-card-heading">
           <div>
-            <span class="availability">
-              <span class="availability-dot" aria-hidden="true"></span>
-              Preview availability
-            </span>
-            <h2 id="assistant-card-heading">Ever Assistant</h2>
-            <p>
-              Ever Assistant is not available in this preview. It will remain
-              unavailable until verified record retrieval and grounded responses
-              are available.
+            <h2 id="homeHealthTitle">Ownership Health</h2>
+            <p class="health-explanation">
+              Ownership Health reflects the ownership details, identifying information, and connected records completed for your Assets.
             </p>
           </div>
 
-          <p class="small-note">
-            This page does not present generated guidance as verified ownership,
-            legal, financial, or document information.
-          </p>
-        </aside>
-      </section>
+          <ul class="health-factors" id="homeHealthFactors">
+            <li><span>Asset records</span><strong>0 added</strong></li>
+            <li><span>Ownership details</span><strong>0 complete</strong></li>
+            <li><span>Identifying information</span><strong>0 complete</strong></li>
+          </ul>
+        </section>
 
-      <aside class="trust-banner" aria-labelledby="trust-heading">
-        <div class="trust-icon" aria-hidden="true">i</div>
+        <div class="summary-stack">
+          <section class="card summary-card" aria-labelledby="assetsSummaryTitle">
+            <p class="eyebrow">Assets</p>
+            <div class="metric" id="assetCount">0</div>
+            <h2 id="assetsSummaryTitle">Your Asset records</h2>
+            <p id="assetSummaryText">Add your first Asset to begin building an ownership record.</p>
+          </section>
+
+          <section class="card summary-card" aria-labelledby="actionTitle">
+            <p class="eyebrow">Action</p>
+            <h2 id="actionTitle">Add an Asset</h2>
+            <p id="actionText">Start with an Asset you own or manage. It will remain visible during this browser session.</p>
+            <div class="button-row">
+              <button class="button" type="button" data-go-to="assets">Open Assets</button>
+            </div>
+          </section>
+
+          <section class="card summary-card" aria-labelledby="upcomingTitle">
+            <p class="eyebrow">Upcoming</p>
+            <h2 id="upcomingTitle">What comes next</h2>
+            <p id="upcomingText">After adding an Asset, complete ownership details and identifying information to strengthen Ownership Health.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="assets" data-screen="assets" tabindex="-1">
+      <div class="section-heading">
         <div>
-          <h2 id="trust-heading">Account-based records</h2>
+          <p class="eyebrow">Assets</p>
+          <h1>Your Assets</h1>
           <p>
-            Assets are saved only after you sign in and EverOwn confirms the save.
-            Saved assets belong to your EverOwn account and are not proof of ownership.
+            Add an Asset, complete its ownership details, and review its Timeline and Ownership Graph.
           </p>
         </div>
-      </aside>
+      </div>
 
-      <section class="auth-panel" id="account" aria-labelledby="account-heading">
-        <h2 id="account-heading">Your account</h2>
-        <p class="panel-intro">Sign in to save and view your EverOwn assets across page refreshes.</p>
+      <div class="assets-layout">
+        <section class="card form-card" aria-labelledby="assetFormTitle">
+          <h2 id="assetFormTitle">Add an Asset</h2>
+          <p class="muted">Each added Asset stays visible for this browser session.</p>
 
-        <div id="signed-out-view">
-          <div class="auth-grid">
-            <form id="sign-in-form" novalidate>
-              <h3>Sign in</h3>
-
-              <div class="field">
-                <label for="sign-in-email">Email</label>
-                <input id="sign-in-email" type="email" autocomplete="email" required>
-              </div>
-
-              <div class="field">
-                <label for="sign-in-password">Password</label>
-                <input id="sign-in-password" type="password" autocomplete="current-password" required>
-              </div>
-
-              <button class="button button-primary" id="sign-in-button" type="submit">Sign in</button>
-              <p class="form-message" id="sign-in-message" role="status" aria-live="polite"></p>
-            </form>
-
-            <form id="sign-up-form" novalidate>
-              <h3>Create an account</h3>
-
-              <div class="field">
-                <label for="sign-up-email">Email</label>
-                <input id="sign-up-email" type="email" autocomplete="email" required>
-              </div>
-
-              <div class="field">
-                <label for="sign-up-password">Password</label>
-                <input id="sign-up-password" type="password" minlength="6" autocomplete="new-password" required>
-              </div>
-
-              <button class="button button-secondary" id="sign-up-button" type="submit">Create account</button>
-              <p class="form-message" id="sign-up-message" role="status" aria-live="polite"></p>
-            </form>
-          </div>
-        </div>
-
-        <div class="auth-signed-in" id="signed-in-view" hidden>
-          <p>Signed in as <strong id="account-email"></strong>. Your saved assets are private to this account.</p>
-          <button class="button button-secondary" id="sign-out-button" type="button">Sign out</button>
-        </div>
-      </section>
-
-      <section aria-labelledby="workspace-heading" style="margin-top: 40px;">
-        <div class="section-head">
-          <h2 id="workspace-heading">Your workspace</h2>
-          <p>Choose a space to review the current EverOwn experience and its availability.</p>
-        </div>
-
-        <div class="workspace-grid">
-          <a class="workspace-card" href="#assets">
-            <span class="card-number" aria-hidden="true">01</span>
-            <h3>Assets</h3>
-            <p>Save a home or vehicle to your signed-in EverOwn account.</p>
-            <span class="card-link">Open assets →</span>
-          </a>
-
-          <a class="workspace-card" href="#vault">
-            <span class="card-number" aria-hidden="true">02</span>
-            <h3>Vault</h3>
-            <p>See the availability boundary for documents and supporting material.</p>
-            <span class="card-link">Open vault →</span>
-          </a>
-
-          <a class="workspace-card" href="#ownership-graph">
-            <span class="card-number" aria-hidden="true">03</span>
-            <h3>Ownership Graph</h3>
-            <p>See how relationship views will be introduced only with verified records.</p>
-            <span class="card-link">Open ownership graph →</span>
-          </a>
-        </div>
-      </section>
-
-      <section class="asset-section" id="assets" aria-labelledby="assets-heading">
-        <div class="section-head">
-          <h2 id="assets-heading">Assets</h2>
-          <p>Sign in, then save a home or vehicle to your private EverOwn account.</p>
-        </div>
-
-        <div class="asset-layout">
-          <form class="asset-form" id="asset-form" novalidate>
-            <h3>Add an asset</h3>
-            <p class="panel-intro">
-              Your asset is saved only after EverOwn confirms it. Use general,
-              non-sensitive information in this version of the workspace.
-            </p>
+          <form id="assetForm">
+            <input type="hidden" id="editingAssetId">
 
             <div class="field">
-              <label for="asset-name">Asset name</label>
-              <input id="asset-name" name="asset-name" type="text" maxlength="80" placeholder="Example: Family vehicle" autocomplete="off" required>
+              <label for="assetName">Asset name</label>
+              <input id="assetName" name="assetName" autocomplete="off" required placeholder="Example: 2020 Honda Accord">
             </div>
 
             <div class="field">
-              <label for="asset-category">Asset type</label>
-              <select id="asset-category" name="asset-category" required style="width:100%;padding:11px 12px;color:var(--ink);background:#fffefa;border:1px solid var(--line);border-radius:10px;font-family:var(--sans);font-size:.94rem;">
+              <label for="assetCategory">Asset category</label>
+              <select id="assetCategory" name="assetCategory" required>
                 <option value="vehicle">Vehicle</option>
                 <option value="home">Home</option>
+                <option value="other">Other</option>
               </select>
             </div>
 
             <div class="field">
-              <label for="asset-note">Optional note</label>
-              <textarea id="asset-note" name="asset-note" maxlength="240" placeholder="A short, non-sensitive note about this asset."></textarea>
+              <label for="assetOwner">Owner</label>
+              <input id="assetOwner" name="assetOwner" autocomplete="name" placeholder="Name of the owner">
             </div>
 
-            <button class="button button-primary" id="asset-submit-button" type="submit">Save asset</button>
+            <div class="field">
+              <label for="assetIdentifier">Identifying information</label>
+              <input id="assetIdentifier" name="assetIdentifier" autocomplete="off" placeholder="VIN, address, serial number, or reference">
+              <span class="field-note">This supports Ownership Health for this Asset.</span>
+            </div>
 
-            <p class="form-note">
-              Do not enter account numbers, identity documents, passwords, legal documents, or other sensitive personal information.
-            </p>
+            <div class="field">
+              <label for="assetNotes">Notes</label>
+              <textarea id="assetNotes" name="assetNotes" placeholder="Add a useful detail about this Asset"></textarea>
+            </div>
 
-            <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+            <div class="form-actions">
+              <button class="button" id="assetSubmitButton" type="submit">Add Asset</button>
+              <button class="button secondary" id="assetCancelButton" type="button" hidden>Cancel edit</button>
+            </div>
+          </form>
+        </section>
+
+        <section aria-labelledby="assetListTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Your records</p>
+              <h2 id="assetListTitle">Asset list</h2>
+            </div>
+          </div>
+
+          <div class="asset-list" id="assetList"></div>
+
+          <section class="card detail-panel" id="assetDetail" hidden aria-live="polite">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Asset detail</p>
+                <h2 id="detailAssetName">Asset</h2>
+                <p id="detailAssetSummary"></p>
+              </div>
+              <button class="button secondary small" id="closeDetailButton" type="button">Close</button>
+            </div>
+
+            <div class="detail-grid">
+              <section class="detail-section" aria-labelledby="timelineTitle">
+                <h3 id="timelineTitle">the Timeline</h3>
+                <ul class="timeline" id="detailTimeline"></ul>
+              </section>
+
+              <section class="detail-section" aria-labelledby="graphTitle">
+                <h3 id="graphTitle">the Ownership Graph</h3>
+                <div class="graph" id="ownershipGraph"></div>
+              </section>
+
+              <section class="detail-section" aria-labelledby="detailHealthTitle">
+                <h3 id="detailHealthTitle">Ownership Health</h3>
+                <p id="detailHealthText"></p>
+              </section>
+
+              <section class="detail-section" aria-labelledby="vaultConnectionTitle">
+                <h3 id="vaultConnectionTitle">the Vault</h3>
+                <p>No file is connected to this Asset in this browser-session preview.</p>
+                <button class="button secondary small" type="button" data-go-to="vault">Open the Vault</button>
+              </section>
+            </div>
+          </section>
+        </section>
+      </div>
+    </section>
+
+    <section class="screen" id="vault" data-screen="vault" tabindex="-1">
+      <p class="eyebrow">Vault</p>
+      <h1>the Vault</h1>
+      <p class="lede">
+        Select a file to review the upload experience. This preview does not upload, store, or connect files to an Asset.
+      </p>
+
+      <div class="vault-layout">
+        <section class="card locked-card" aria-labelledby="vaultLockedTitle">
+          <h2 id="vaultLockedTitle">File storage is not connected</h2>
+          <p>
+            the Vault is the place for records connected to an Asset. In this preview, file selection is available, but no file leaves this browser or becomes stored.
+          </p>
+
+          <div class="field">
+            <label for="vaultFile">Choose a file</label>
+            <input id="vaultFile" type="file">
+          </div>
+
+          <div class="button-row">
+            <button class="button secondary small" id="clearVaultFile" type="button" hidden>Clear selection</button>
+          </div>
+
+          <div class="upload-receipt" id="vaultReceipt" hidden aria-live="polite"></div>
+        </section>
+
+        <section class="card locked-card" aria-labelledby="vaultNextTitle">
+          <p class="eyebrow">What the Vault will hold</p>
+          <h2 id="vaultNextTitle">Records connected to an Asset</h2>
+          <p>
+            A complete Vault connection would let you attach records to an Asset and make those connections visible in the Timeline and Ownership Graph.
+          </p>
+          <p class="muted">No file is retained after this browser session ends.</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="screen" id="assistant" data-screen="assistant" tabindex="-1">
+      <p class="eyebrow">Ever Assistant</p>
+      <h1>Ever Assistant</h1>
+      <p class="lede">
+        Ask about an Asset or its ownership record. This preview can acknowledge your question locally, but it cannot process or retain it.
+      </p>
+
+      <section class="card locked-card" aria-labelledby="assistantLockedTitle">
+        <h2 id="assistantLockedTitle">Assistant service is not connected</h2>
+        <p>
+          Ever Assistant is unavailable in this browser-session preview. Your question will remain visible here only until this browser session ends.
+        </p>
+
+        <form class="assistant-form" id="assistantForm">
+          <div class="field">
+            <label for="assistantQuestion">Your question</label>
+            <textarea id="assistantQuestion" required placeholder="Example: What details are missing from my vehicle Asset?"></textarea>
+          </div>
+
+          <button class="button" type="submit">Send question</button>
+        </form>
+
+        <div class="assistant-receipt" id="assistantReceipt" hidden aria-live="polite"></div>
+      </section>
+    </section>
+
+    <section class="screen" id="profile" data-screen="profile" tabindex="-1">
+      <p class="eyebrow">Profile</p>
+      <h1>Profile</h1>
+      <p class="lede">
+        Set the name shown in this workspace and manage browser-session prototype data.
+      </p>
+
+      <div class="profile-layout">
+        <section class="card locked-card" aria-labelledby="profileIdentityTitle">
+          <h2 id="profileIdentityTitle">Workspace identity</h2>
+          <p>This is not an authenticated account. The name below applies only to this browser session.</p>
+
+          <form id="profileForm">
+            <div class="field">
+              <label for="profileName">Display name</label>
+              <input id="profileName" autocomplete="name" placeholder="Your name">
+            </div>
+
+            <button class="button" type="submit">Save name</button>
           </form>
 
-          <section class="asset-list-panel" aria-labelledby="asset-list-heading">
-            <h3 id="asset-list-heading">Your saved assets</h3>
-            <p class="panel-intro">
-              These assets are shown from your signed-in EverOwn account.
-            </p>
+          <div class="profile-receipt" id="profileReceipt" hidden aria-live="polite"></div>
+        </section>
 
-            <div class="empty-state" id="empty-state">
-              <p id="empty-state-message">Sign in to view and save your assets.</p>
-            </div>
+        <section class="card locked-card" aria-labelledby="profileDataTitle">
+          <h2 id="profileDataTitle">Browser-session data</h2>
+          <p>
+            Clearing this session removes Assets, selected file details, and the local display name from this prototype.
+          </p>
 
-            <div class="asset-list" id="asset-list" aria-live="polite"></div>
-          </section>
-        </div>
-      </section>
-
-      <section class="vault-section" id="vault" aria-labelledby="vault-heading">
-        <div class="unavailable-card">
-          <div>
-            <h2 id="vault-heading">Vault is unavailable in this preview</h2>
-            <p>
-              File uploads, document storage, and document retrieval are not
-              enabled. Do not treat this preview as a document vault or upload
-              sensitive materials here.
-            </p>
+          <div class="button-row">
+            <button class="button danger" id="clearSessionButton" type="button">Clear browser session</button>
           </div>
-          <span class="unavailable-label">Unavailable</span>
-        </div>
-      </section>
+        </section>
+      </div>
+    </section>
+  </main>
 
-      <section class="graph-section" id="ownership-graph" aria-labelledby="graph-heading">
-        <div class="unavailable-card">
-          <div>
-            <h2 id="graph-heading">Ownership Graph is unavailable in this preview</h2>
-            <p>
-              Relationship views require verified, server-persisted records.
-              This preview does not infer, confirm, or display ownership
-              relationships.
-            </p>
-          </div>
-          <span class="unavailable-label">Unavailable</span>
-        </div>
-      </section>
-
-      <section class="assistant-section" id="ever-assistant" aria-labelledby="ever-assistant-heading">
-        <div class="unavailable-card">
-          <div>
-            <h2 id="ever-assistant-heading">Ever Assistant is unavailable in this preview</h2>
-            <p>
-              Ever Assistant will be enabled only after it can retrieve verified
-              records and provide grounded, traceable responses. No assistant
-              conclusions are generated on this page.
-            </p>
-          </div>
-          <span class="unavailable-label">Unavailable</span>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">
-      EverOwn preview experience. Saved assets are account-based records and are not verified proof of ownership.
-    </footer>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <nav class="nav" aria-label="Primary navigation">
+    <ul class="nav-list">
+      <li><button class="nav-button" type="button" data-go-to="home" aria-current="page">Home</button></li>
+      <li><button class="nav-button" type="button" data-go-to="assets">Assets</button></li>
+      <li><button class="nav-button" type="button" data-go-to="vault">Vault</button></li>
+      <li><button class="nav-button" type="button" data-go-to="assistant">Ever Assistant</button></li>
+      <li><button class="nav-button" type="button" data-go-to="profile">Profile</button></li>
+    </ul>
+  </nav>
 
   <script>
     (() => {
-      /*
-        This is a Supabase publishable browser key, not a secret key.
-        Never place a service-role key in this file.
-      */
-      const SUPABASE_URL = "https://ltrewwvedzimwbviqaora.supabase.co";
-      const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_48PAhXoHy6Cy7ws6JRxhsg_xPo6mbLb";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+      const SESSION_KEY = "everown-prototype-v3";
 
-      const navToggle = document.getElementById("nav-toggle");
-      const nav = document.getElementById("main-navigation");
+      const defaultState = {
+        profileName: "",
+        assets: [],
+        selectedFile: null,
+        assistantQuestion: ""
+      };
 
-      const signedOutView = document.getElementById("signed-out-view");
-      const signedInView = document.getElementById("signed-in-view");
-      const accountEmail = document.getElementById("account-email");
+      const state = loadState();
+      let activeDetailId = null;
 
-      const signInForm = document.getElementById("sign-in-form");
-      const signInEmail = document.getElementById("sign-in-email");
-      const signInPassword = document.getElementById("sign-in-password");
-      const signInButton = document.getElementById("sign-in-button");
-      const signInMessage = document.getElementById("sign-in-message");
+      const elements = {
+        headerName: document.getElementById("headerName"),
+        assetCount: document.getElementById("assetCount"),
+        assetSummaryText: document.getElementById("assetSummaryText"),
+        actionText: document.getElementById("actionText"),
+        upcomingText: document.getElementById("upcomingText"),
+        homeHealthValue: document.getElementById("homeHealthValue"),
+        homeRingProgress: document.getElementById("homeRingProgress"),
+        homeHealthFactors: document.getElementById("homeHealthFactors"),
+        assetForm: document.getElementById("assetForm"),
+        editingAssetId: document.getElementById("editingAssetId"),
+        assetName: document.getElementById("assetName"),
+        assetCategory: document.getElementById("assetCategory"),
+        assetOwner: document.getElementById("assetOwner"),
+        assetIdentifier: document.getElementById("assetIdentifier"),
+        assetNotes: document.getElementById("assetNotes"),
+        assetSubmitButton: document.getElementById("assetSubmitButton"),
+        assetCancelButton: document.getElementById("assetCancelButton"),
+        assetList: document.getElementById("assetList"),
+        assetDetail: document.getElementById("assetDetail"),
+        detailAssetName: document.getElementById("detailAssetName"),
+        detailAssetSummary: document.getElementById("detailAssetSummary"),
+        detailTimeline: document.getElementById("detailTimeline"),
+        ownershipGraph: document.getElementById("ownershipGraph"),
+        detailHealthText: document.getElementById("detailHealthText"),
+        closeDetailButton: document.getElementById("closeDetailButton"),
+        vaultFile: document.getElementById("vaultFile"),
+        vaultReceipt: document.getElementById("vaultReceipt"),
+        clearVaultFile: document.getElementById("clearVaultFile"),
+        assistantForm: document.getElementById("assistantForm"),
+        assistantQuestion: document.getElementById("assistantQuestion"),
+        assistantReceipt: document.getElementById("assistantReceipt"),
+        profileForm: document.getElementById("profileForm"),
+        profileName: document.getElementById("profileName"),
+        profileReceipt: document.getElementById("profileReceipt"),
+        clearSessionButton: document.getElementById("clearSessionButton")
+      };
 
-      const signUpForm = document.getElementById("sign-up-form");
-      const signUpEmail = document.getElementById("sign-up-email");
-      const signUpPassword = document.getElementById("sign-up-password");
-      const signUpButton = document.getElementById("sign-up-button");
-      const signUpMessage = document.getElementById("sign-up-message");
+      function loadState() {
+        try {
+          const stored = sessionStorage.getItem(SESSION_KEY);
 
-      const signOutButton = document.getElementById("sign-out-button");
+          if (!stored) {
+            return structuredClone(defaultState);
+          }
 
-      const form = document.getElementById("asset-form");
-      const assetName = document.getElementById("asset-name");
-      const assetCategory = document.getElementById("asset-category");
-      const assetNote = document.getElementById("asset-note");
-      const assetSubmitButton = document.getElementById("asset-submit-button");
-      const assetList = document.getElementById("asset-list");
-      const emptyState = document.getElementById("empty-state");
-      const emptyStateMessage = document.getElementById("empty-state-message");
-      const formMessage = document.getElementById("form-message");
-
-      let currentUser = null;
-
-      function setMessage(element, message, isError = false) {
-        element.textContent = message;
-        element.classList.toggle("error", isError);
+          return {
+            ...structuredClone(defaultState),
+            ...JSON.parse(stored)
+          };
+        } catch {
+          return structuredClone(defaultState);
+        }
       }
 
-      function setButtonLoading(button, isLoading, loadingText, defaultText) {
-        button.disabled = isLoading;
-        button.textContent = isLoading ? loadingText : defaultText;
+      function saveState() {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
       }
 
-      function renderAssets(assets) {
-        assetList.innerHTML = "";
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
 
-        if (!currentUser) {
-          emptyStateMessage.textContent = "Sign in to view and save your assets.";
-          emptyState.hidden = false;
-          return;
+      function formatCategory(category) {
+        return category.charAt(0).toUpperCase() + category.slice(1);
+      }
+
+      function calculateAssetHealth(asset) {
+        const factors = [
+          Boolean(asset.name),
+          Boolean(asset.category),
+          Boolean(asset.owner),
+          Boolean(asset.identifier)
+        ];
+
+        return Math.round((factors.filter(Boolean).length / factors.length) * 100);
+      }
+
+      function calculateOwnershipHealth() {
+        if (state.assets.length === 0) {
+          return 0;
         }
 
-        if (!assets || assets.length === 0) {
-          emptyStateMessage.textContent = "No saved assets yet. Add a home or vehicle to begin.";
-          emptyState.hidden = false;
-          return;
-        }
+        const total = state.assets.reduce((sum, asset) => sum + calculateAssetHealth(asset), 0);
+        return Math.round(total / state.assets.length);
+      }
 
-        emptyState.hidden = true;
+      function getFactorCounts() {
+        return {
+          assets: state.assets.length,
+          owners: state.assets.filter((asset) => asset.owner).length,
+          identifiers: state.assets.filter((asset) => asset.identifier).length
+        };
+      }
 
-        assets.forEach((asset) => {
-          const item = document.createElement("article");
-          item.className = "asset-item";
+      function setRing(progressElement, percentage) {
+        const circumference = 2 * Math.PI * 84;
+        const offset = circumference - (circumference * percentage) / 100;
 
-          const text = document.createElement("div");
-          const title = document.createElement("h4");
-          const note = document.createElement("p");
-          const status = document.createElement("span");
-
-          title.textContent = asset.name || "Untitled asset";
-          note.textContent = asset.note || "No note added.";
-          status.className = "asset-status";
-          status.textContent = asset.category === "home" ? "Home" : "Vehicle";
-
-          text.appendChild(title);
-          text.appendChild(note);
-          item.appendChild(text);
-          item.appendChild(status);
-          assetList.appendChild(item);
+        requestAnimationFrame(() => {
+          progressElement.style.strokeDasharray = circumference;
+          progressElement.style.strokeDashoffset = offset;
         });
       }
 
-      async function loadAssets() {
-        if (!currentUser) {
-          renderAssets([]);
+      function renderHome() {
+        const health = calculateOwnershipHealth();
+        const factors = getFactorCounts();
+        const name = state.profileName.trim();
+
+        elements.headerName.textContent = name || "Your workspace";
+        elements.assetCount.textContent = factors.assets;
+        elements.homeHealthValue.textContent = `${health}%`;
+        setRing(elements.homeRingProgress, health);
+
+        elements.homeHealthFactors.innerHTML = `
+          <li><span>Asset records</span><strong>${factors.assets} added</strong></li>
+          <li><span>Ownership details</span><strong>${factors.owners} complete</strong></li>
+          <li><span>Identifying information</span><strong>${factors.identifiers} complete</strong></li>
+        `;
+
+        if (factors.assets === 0) {
+          elements.assetSummaryText.textContent =
+            "Add your first Asset to begin building an ownership record.";
+          elements.actionText.textContent =
+            "Start with an Asset you own or manage. It will remain visible during this browser session.";
+          elements.upcomingText.textContent =
+            "After adding an Asset, complete ownership details and identifying information to strengthen Ownership Health.";
           return;
         }
 
-        emptyStateMessage.textContent = "Loading your saved assets…";
-        emptyState.hidden = false;
-        assetList.innerHTML = "";
+        elements.assetSummaryText.textContent =
+          `${factors.assets} Asset${factors.assets === 1 ? "" : "s"} visible in this browser session.`;
 
-        /*
-          The fields below match the intended EverOwn assets schema:
-          user_id, name, category, state, and note.
+        const incomplete = state.assets.find((asset) => !asset.owner || !asset.identifier);
 
-          If your deployed table uses "description" instead of "note",
-          change each "note" below to "description".
-        */
-        const { data, error } = await supabase
-          .from("assets")
-          .select("id, name, category, state, note, created_at")
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.error("Unable to load assets:", error);
-          emptyStateMessage.textContent = "Your saved assets could not be loaded right now.";
-          emptyState.hidden = false;
-          return;
-        }
-
-        renderAssets(data);
-      }
-
-      async function updateAuthView(user) {
-        currentUser = user || null;
-        signedOutView.hidden = Boolean(currentUser);
-        signedInView.hidden = !currentUser;
-
-        if (currentUser) {
-          accountEmail.textContent = currentUser.email || "your account";
-          await loadAssets();
+        if (incomplete) {
+          elements.actionText.textContent =
+            `Complete ownership details for ${incomplete.name} to strengthen its Ownership Health.`;
+          elements.upcomingText.textContent =
+            "Review the Timeline and Ownership Graph inside an Asset record, then connect records through the Vault when storage is available.";
         } else {
-          accountEmail.textContent = "";
-          form.reset();
-          setMessage(formMessage, "");
-          renderAssets([]);
+          elements.actionText.textContent =
+            "Your visible Assets include ownership and identifying information. Review each record when details change.";
+          elements.upcomingText.textContent =
+            "the Vault is ready for file selection in this preview, but no file storage is connected.";
         }
       }
 
-      navToggle.addEventListener("click", () => {
-        const isOpen = nav.classList.toggle("open");
-        navToggle.setAttribute("aria-expanded", String(isOpen));
-        navToggle.textContent = isOpen ? "Close" : "Menu";
-      });
-
-      nav.querySelectorAll("a").forEach((link) => {
-        link.addEventListener("click", () => {
-          nav.classList.remove("open");
-          navToggle.setAttribute("aria-expanded", "false");
-          navToggle.textContent = "Menu";
-        });
-      });
-
-      signInForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const email = signInEmail.value.trim();
-        const password = signInPassword.value;
-
-        if (!email || !password) {
-          setMessage(signInMessage, "Enter your email and password.", true);
+      function renderAssets() {
+        if (state.assets.length === 0) {
+          elements.assetList.innerHTML = `
+            <div class="empty-state">
+              <h3>No Assets yet</h3>
+              <p>Add an Asset with the form. It will appear here immediately and remain visible during this browser session.</p>
+              <button class="button" type="button" data-go-to="assets" data-focus-asset-form="true">Add your first Asset</button>
+            </div>
+          `;
           return;
         }
 
-        setMessage(signInMessage, "");
-        setButtonLoading(signInButton, true, "Signing in…", "Sign in");
+        elements.assetList.innerHTML = state.assets
+          .map((asset) => {
+            const health = calculateAssetHealth(asset);
+            const ownerText = asset.owner ? `Owner: ${escapeHtml(asset.owner)}` : "Owner not added";
+            const identifierText = asset.identifier
+              ? `ID: ${escapeHtml(asset.identifier)}`
+              : "Identifying information not added";
 
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+            return `
+              <article class="card asset-card">
+                <div class="asset-card-header">
+                  <div>
+                    <p class="asset-type">${escapeHtml(formatCategory(asset.category))}</p>
+                    <h3>${escapeHtml(asset.name)}</h3>
+                    <p class="asset-meta">${ownerText}<br>${identifierText}</p>
+                  </div>
+                  <span class="asset-health" aria-label="${health}% Ownership Health">${health}%</span>
+                </div>
 
-        setButtonLoading(signInButton, false, "Signing in…", "Sign in");
+                <div class="asset-actions">
+                  <button class="button secondary small" type="button" data-view-asset="${asset.id}">View record</button>
+                  <button class="button secondary small" type="button" data-edit-asset="${asset.id}">Edit Asset</button>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
 
-        if (error) {
-          setMessage(signInMessage, error.message, true);
+      function renderDetail() {
+        const asset = state.assets.find((item) => item.id === activeDetailId);
+
+        if (!asset) {
+          elements.assetDetail.hidden = true;
           return;
         }
 
-        signInForm.reset();
-        setMessage(signInMessage, "Signed in successfully.");
-      });
+        const health = calculateAssetHealth(asset);
+        const createdDate = new Intl.DateTimeFormat("en", {
+          month: "short",
+          day: "numeric",
+          year: "numeric"
+        }).format(new Date(asset.createdAt));
 
-      signUpForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
+        elements.assetDetail.hidden = false;
+        elements.detailAssetName.textContent = asset.name;
+        elements.detailAssetSummary.textContent =
+          `${formatCategory(asset.category)} Asset · Ownership Health ${health}%`;
 
-        const email = signUpEmail.value.trim();
-        const password = signUpPassword.value;
+        elements.detailTimeline.innerHTML = `
+          <li>Asset added on ${createdDate}.</li>
+          <li>${asset.owner ? "Ownership detail added." : "Ownership detail still needed."}</li>
+          <li>${asset.identifier ? "Identifying information added." : "Identifying information still needed."}</li>
+        `;
 
-        if (!email || !password) {
-          setMessage(signUpMessage, "Enter your email and password.", true);
+        elements.ownershipGraph.innerHTML = `
+          <div class="graph-node"><strong>Asset</strong><br>${escapeHtml(asset.name)}</div>
+          <div class="graph-connection" aria-hidden="true"></div>
+          <div class="graph-node"><strong>Owner</strong><br>${asset.owner ? escapeHtml(asset.owner) : "Not added"}</div>
+          <div class="graph-connection" aria-hidden="true"></div>
+          <div class="graph-node"><strong>the Vault</strong><br>No connected record in this preview</div>
+        `;
+
+        elements.detailHealthText.textContent =
+          `${health}% is based on the Asset record, ownership details, and identifying information completed here.`;
+      }
+
+      function resetAssetForm() {
+        elements.assetForm.reset();
+        elements.editingAssetId.value = "";
+        elements.assetSubmitButton.textContent = "Add Asset";
+        elements.assetCancelButton.hidden = true;
+      }
+
+      function beginEdit(assetId) {
+        const asset = state.assets.find((item) => item.id === assetId);
+
+        if (!asset) {
           return;
         }
 
-        if (password.length < 6) {
-          setMessage(signUpMessage, "Use a password with at least 6 characters.", true);
+        elements.editingAssetId.value = asset.id;
+        elements.assetName.value = asset.name;
+        elements.assetCategory.value = asset.category;
+        elements.assetOwner.value = asset.owner;
+        elements.assetIdentifier.value = asset.identifier;
+        elements.assetNotes.value = asset.notes;
+        elements.assetSubmitButton.textContent = "Save Asset";
+        elements.assetCancelButton.hidden = false;
+        elements.assetName.focus();
+      }
+
+      function renderVault() {
+        const file = state.selectedFile;
+
+        if (!file) {
+          elements.vaultReceipt.hidden = true;
+          elements.vaultReceipt.textContent = "";
+          elements.clearVaultFile.hidden = true;
           return;
         }
 
-        setMessage(signUpMessage, "");
-        setButtonLoading(signUpButton, true, "Creating…", "Create account");
+        const sizeInKb = Math.max(1, Math.round(file.size / 1024));
 
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: "https://thesilenthelper97-beep.github.io/serene-sunflower-e12e30/"
+        elements.vaultReceipt.hidden = false;
+        elements.clearVaultFile.hidden = false;
+        elements.vaultReceipt.innerHTML = `
+          <strong>File selected locally:</strong> ${escapeHtml(file.name)}<br>
+          ${escapeHtml(file.type || "Unknown file type")} · ${sizeInKb} KB<br>
+          This file has not been uploaded, stored, or connected to an Asset.
+        `;
+      }
+
+      function renderAssistant() {
+        if (!state.assistantQuestion) {
+          elements.assistantReceipt.hidden = true;
+          elements.assistantReceipt.textContent = "";
+          return;
+        }
+
+        elements.assistantReceipt.hidden = false;
+        elements.assistantReceipt.innerHTML = `
+          <strong>Question received in this browser session:</strong><br>
+          “${escapeHtml(state.assistantQuestion)}”<br><br>
+          Ever Assistant cannot process this question in the current preview.
+        `;
+      }
+
+      function renderProfile() {
+        elements.profileName.value = state.profileName || "";
+      }
+
+      function renderAll() {
+        renderHome();
+        renderAssets();
+        renderDetail();
+        renderVault();
+        renderAssistant();
+        renderProfile();
+      }
+
+      function showScreen(screenName) {
+        document.querySelectorAll("[data-screen]").forEach((screen) => {
+          const isActive = screen.dataset.screen === screenName;
+          screen.classList.toggle("is-active", isActive);
+
+          if (isActive) {
+            window.setTimeout(() => screen.focus({ preventScroll: true }), 0);
           }
         });
 
-        setButtonLoading(signUpButton, false, "Creating…", "Create account");
-
-        if (error) {
-          setMessage(signUpMessage, error.message, true);
-          return;
-        }
-
-        signUpForm.reset();
-
-        if (data.session) {
-          setMessage(signUpMessage, "Account created and signed in.");
-        } else {
-          setMessage(signUpMessage, "Account created. Check your email to confirm your account, then sign in.");
-        }
-      });
-
-      signOutButton.addEventListener("click", async () => {
-        signOutButton.disabled = true;
-        signOutButton.textContent = "Signing out…";
-
-        const { error } = await supabase.auth.signOut();
-
-        signOutButton.disabled = false;
-        signOutButton.textContent = "Sign out";
-
-        if (error) {
-          console.error("Unable to sign out:", error);
-          setMessage(formMessage, "Unable to sign out right now.", true);
-        }
-      });
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const name = assetName.value.trim();
-        const category = assetCategory.value;
-        const note = assetNote.value.trim();
-
-        setMessage(formMessage, "");
-
-        if (!currentUser) {
-          setMessage(formMessage, "Sign in before saving an asset.", true);
-          document.getElementById("account").scrollIntoView({ behavior: "smooth", block: "start" });
-          return;
-        }
-
-        if (!name) {
-          setMessage(formMessage, "Enter an asset name before saving.", true);
-          assetName.focus();
-          return;
-        }
-
-        setButtonLoading(assetSubmitButton, true, "Saving…", "Save asset");
-        setMessage(formMessage, "Saving your asset…");
-
-        const { error } = await supabase
-          .from("assets")
-          .insert({
-            user_id: currentUser.id,
-            name,
-            category,
-            state: "draft",
-            note: note || null
-          });
-
-        setButtonLoading(assetSubmitButton, false, "Saving…", "Save asset");
-
-        if (error) {
-          console.error("Unable to save asset:", error);
-
-          const schemaMessage = error.message && (
-            error.message.includes("note") ||
-            error.message.includes("column")
+        document.querySelectorAll("[data-go-to]").forEach((button) => {
+          button.setAttribute(
+            "aria-current",
+            button.dataset.goTo === screenName ? "page" : "false"
           );
+        });
 
-          setMessage(
-            formMessage,
-            schemaMessage
-              ? "Your database needs its asset note field mapped before this item can save."
-              : "This asset was not saved. Please try again.",
-            true
-          );
-          return;
-        }
-
-        form.reset();
-        setMessage(formMessage, "Saved to your EverOwn account.");
-        await loadAssets();
-      });
-
-      supabase.auth.onAuthStateChange((_event, session) => {
-        updateAuthView(session?.user || null);
-      });
-
-      async function initialize() {
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error("Unable to restore session:", error);
-          renderAssets([]);
-          return;
-        }
-
-        await updateAuthView(data.session?.user || null);
+        history.replaceState(null, "", `#${screenName}`);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
-      initialize();
+      document.addEventListener("click", (event) => {
+        const goTo = event.target.closest("[data-go-to]");
+
+        if (goTo) {
+          showScreen(goTo.dataset.goTo);
+
+          if (goTo.dataset.focusAssetForm === "true") {
+            window.setTimeout(() => elements.assetName.focus(), 200);
+          }
+
+          return;
+        }
+
+        const screenLink = event.target.closest("[data-screen-link]");
+
+        if (screenLink) {
+          event.preventDefault();
+          showScreen(screenLink.dataset.screenLink);
+          return;
+        }
+
+        const viewButton = event.target.closest("[data-view-asset]");
+
+        if (viewButton) {
+          activeDetailId = viewButton.dataset.viewAsset;
+          renderDetail();
+          elements.assetDetail.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+
+        const editButton = event.target.closest("[data-edit-asset]");
+
+        if (editButton) {
+          beginEdit(editButton.dataset.editAsset);
+        }
+      });
+
+      elements.assetForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const assetData = {
+          name: elements.assetName.value.trim(),
+          category: elements.assetCategory.value,
+          owner: elements.assetOwner.value.trim(),
+          identifier: elements.assetIdentifier.value.trim(),
+          notes: elements.assetNotes.value.trim()
+        };
+
+        if (!assetData.name) {
+          elements.assetName.focus();
+          return;
+        }
+
+        const existingId = elements.editingAssetId.value;
+
+        if (existingId) {
+          const index = state.assets.findIndex((asset) => asset.id === existingId);
+
+          if (index !== -1) {
+            state.assets[index] = {
+              ...state.assets[index],
+              ...assetData,
+              updatedAt: new Date().toISOString()
+            };
+            activeDetailId = existingId;
+          }
+        } else {
+          const newAsset = {
+            id: crypto.randomUUID(),
+            ...assetData,
+            createdAt: new Date().toISOString()
+          };
+
+          state.assets.unshift(newAsset);
+          activeDetailId = newAsset.id;
+        }
+
+        saveState();
+        resetAssetForm();
+        renderAll();
+      });
+
+      elements.assetCancelButton.addEventListener("click", resetAssetForm);
+
+      elements.closeDetailButton.addEventListener("click", () => {
+        activeDetailId = null;
+        renderDetail();
+      });
+
+      elements.vaultFile.addEventListener("change", () => {
+        const file = elements.vaultFile.files[0];
+
+        if (!file) {
+          return;
+        }
+
+        state.selectedFile = {
+          name: file.name,
+          type: file.type,
+          size: file.size
+        };
+
+        saveState();
+        renderVault();
+      });
+
+      elements.clearVaultFile.addEventListener("click", () => {
+        state.selectedFile = null;
+        elements.vaultFile.value = "";
+        saveState();
+        renderVault();
+      });
+
+      elements.assistantForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const question = elements.assistantQuestion.value.trim();
+
+        if (!question) {
+          elements.assistantQuestion.focus();
+          return;
+        }
+
+        state.assistantQuestion = question;
+        saveState();
+        renderAssistant();
+      });
+
+      elements.profileForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        state.profileName = elements.profileName.value.trim();
+        saveState();
+        renderHome();
+
+        elements.profileReceipt.hidden = false;
+        elements.profileReceipt.textContent =
+          state.profileName
+            ? `Display name saved for this browser session: ${state.profileName}.`
+            : "Display name cleared for this browser session.";
+      });
+
+      elements.clearSessionButton.addEventListener("click", () => {
+        const confirmed = window.confirm(
+          "Clear all Assets, selected file details, assistant question, and display name from this browser session?"
+        );
+
+        if (!confirmed) {
+          return;
+        }
+
+        sessionStorage.removeItem(SESSION_KEY);
+        Object.assign(state, structuredClone(defaultState));
+        activeDetailId = null;
+        elements.vaultFile.value = "";
+        elements.assistantQuestion.value = "";
+        elements.profileReceipt.hidden = true;
+        resetAssetForm();
+        renderAll();
+        showScreen("home");
+      });
+
+      const initialScreen = window.location.hash.replace("#", "");
+      const allowedScreens = ["home", "assets", "vault", "assistant", "profile"];
+
+      renderAll();
+      showScreen(allowedScreens.includes(initialScreen) ? initialScreen : "home");
     })();
   </script>
 </body>
