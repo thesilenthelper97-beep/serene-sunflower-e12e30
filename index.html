@@ -998,3 +998,107 @@
                 <button class="button secondary small" type="button" data-go-to="vault">Open the Vault</button>
               </section>
             </div>
+          </section>
+        </section>
+      </div>
+    </section>
+
+    <!-- scripts and app logic (restored from aa92ec48...) -->
+    <script>
+      // Minimal client-side logic restored from the historical commit to wire up UI and Supabase.
+      (function () {
+        const SUPABASE_URL = '';
+        const SUPABASE_ANON = '';
+        // init placeholder - real keys should be injected via environment when deployed
+        const supabase = null;
+
+        function $(id) { return document.getElementById(id); }
+
+        // Basic navigation
+        document.querySelectorAll('[data-screen-link]').forEach(el => {
+          el.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = el.getAttribute('data-screen-link');
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('is-active'));
+            const screen = document.getElementById(target);
+            if (screen) screen.classList.add('is-active');
+          });
+        });
+
+        // Asset form submit (local storage fallback)
+        const assetForm = $('assetForm');
+        const assetListEl = $('assetList');
+
+        function loadAssets() {
+          const raw = localStorage.getItem('everown_assets') || '[]';
+          return JSON.parse(raw);
+        }
+
+        function saveAssets(list) {
+          localStorage.setItem('everown_assets', JSON.stringify(list));
+        }
+
+        function renderAssets() {
+          const assets = loadAssets();
+          assetListEl.innerHTML = assets.map((a, i) => `\n            <div class="card asset-card">\n              <div class="asset-card-header">\n                <div>\n                  <p class="asset-type">${a.category || 'Other'}</p>\n                  <h3>${a.name}</h3>\n                  <p class="asset-meta">${a.identifier || ''}</p>\n                </div>\n                <div class="asset-health">${a.health || '—'}</div>\n              </div>\n              <div class="asset-actions">\n                <button class="button small" data-index="${i}" data-action="view">View</button>\n                <button class="button secondary small" data-index="${i}" data-action="delete">Delete</button>\n              </div>\n            </div>\n          `).join('');
+        }
+
+        if (assetForm) {
+          assetForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const assets = loadAssets();
+            const newAsset = {
+              name: $('assetName').value,
+              category: $('assetCategory').value,
+              owner: $('assetOwner').value,
+              identifier: $('assetIdentifier').value,
+              notes: $('assetNotes').value,
+              health: '0%'
+            };
+            assets.push(newAsset);
+            saveAssets(assets);
+            renderAssets();
+            assetForm.reset();
+          });
+        }
+
+        document.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-action]');
+          if (!btn) return;
+          const idx = Number(btn.getAttribute('data-index'));
+          const action = btn.getAttribute('data-action');
+          const assets = loadAssets();
+          if (action === 'delete') {
+            assets.splice(idx, 1);
+            saveAssets(assets);
+            renderAssets();
+          }
+          if (action === 'view') {
+            const a = assets[idx];
+            $('detailAssetName').textContent = a.name;
+            $('detailAssetSummary').textContent = a.notes || '';
+            $('assetDetail').hidden = false;
+            $('assetDetail').scrollIntoView({behavior: 'smooth'});
+          }
+        });
+
+        const closeDetail = $('closeDetailButton');
+        if (closeDetail) closeDetail.addEventListener('click', () => { $('assetDetail').hidden = true; });
+
+        renderAssets();
+      })();
+    </script>
+  </main>
+
+  <nav class="nav" aria-label="Main navigation">
+    <ul class="nav-list">
+      <li><a class="nav-button" href="#home" data-screen-link="home">Home</a></li>
+      <li><a class="nav-button" href="#assets" data-screen-link="assets">Assets</a></li>
+      <li><a class="nav-button" href="#vault" data-screen-link="vault">Vault</a></li>
+      <li><a class="nav-button" href="#profile" data-screen-link="profile">Profile</a></li>
+      <li><a class="nav-button" href="#help" data-screen-link="help">Help</a></li>
+    </ul>
+  </nav>
+
+</body>
+</html>
